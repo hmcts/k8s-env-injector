@@ -1,0 +1,9 @@
+#!/bin/bash
+
+set -e
+
+CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o k8s-env-injector .
+
+docker build --no-cache -t hmcts/k8s-env-injector:0.0.1 .
+docker push hmcts/k8s-env-injector:0.0.1
+

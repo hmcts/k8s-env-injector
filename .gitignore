@@ -1,0 +1,20 @@
+# Binaries for programs and plugins
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Application binary
+k8s-env-injector
+
+# Test binary, build with `go test -c`
+*.test
+
+# Output of the go coverage tool
+*.out
+
+vendor/*
+
+.idea
+.DS_store
+*.iml

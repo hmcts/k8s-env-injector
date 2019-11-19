@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: env-injector-webhook-deployment
+  labels:
+    app: env-injector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: env-injector
+  template:
+    metadata:
+      labels:
+        app: env-injector
+    spec:
+      containers:
+        - name: env-injector
+          image: hmcts/k8s-env-injector:0.0.1
+          imagePullPolicy: Always
+          args:
+            - -envCfgFile=/etc/webhook/config/envconfig.yaml
+            - -tlsCertFile=/etc/webhook/certs/cert.pem
+            - -tlsKeyFile=/etc/webhook/certs/key.pem
+            - -alsologtostderr
+            - -v=4
+            - 2>&1
+          volumeMounts:
+            - name: webhook-certs
+              mountPath: /etc/webhook/certs
+              readOnly: true
+            - name: webhook-config
+              mountPath: /etc/webhook/config
+      volumes:
+        - name: webhook-certs
+          secret:
+            secretName: env-injector-webhook-certs
+        - name: webhook-config
+          configMap:
+            name: env-injector-webhook-configmap

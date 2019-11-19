@@ -1,0 +1,22 @@
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: env-injector-webhook-cfg
+  labels:
+    app: env-injector
+webhooks:
+  - name: env-injector.hmcts.net
+    clientConfig:
+      service:
+        name: env-injector-webhook-svc
+        namespace: default
+        path: "/mutate"
+      caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUM1ekNDQWMrZ0F3SUJBZ0lCQVRBTkJna3Foa2lHOXcwQkFRc0ZBREFWTVJNd0VRWURWUVFERXdwdGFXNXAKYTNWaVpVTkJNQjRYRFRFNE1EVXhNVEUwTWpNME1sb1hEVEk0TURVd09ERTBNak0wTWxvd0ZURVRNQkVHQTFVRQpBeE1LYldsdWFXdDFZbVZEUVRDQ0FTSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBTU1mCnFiVlJqWGJVTGRUZUlZeEt0NnkrUTdhZGhkRDl1bXBvczh3WkJWNTh5TnQwRGE4SC9zQUs1dmxkaG5vMjZMMG4KYkhrU0xDTVNuZmhwSVV6OFkrL2R3MmhwdVhqWWhLc05sMDZ4TlNpenNtamlBTU8vQnJrMlpuSm9BY3lwNEgrRgpNZmZvc3ltcU93NU1VUWRpQXVQRy9qczdWRjFIWmhjUC9oUFVPU1NjSVd6eTUzdHc2czUySFdBYmdNaElJa2RYCjhMUFd1dWZVUFd2UExIYXBEd3FaRnp4ajJhQmRhWEVuVk9yTFliTXp3cERKNXR3MTgxencyUDRmRS83QzM0ZDYKWUVIMVdaQlRMUnBHLzA3anVjUUJ3aUQxNXRLMytnT0FlaHJUS3hjMjJ1Mm5rcVRlbk82TWwxQVZhRnUxUXNXWgpoNlg4R0RNUEVUMTRqSFUycE1jQ0F3RUFBYU5DTUVBd0RnWURWUjBQQVFIL0JBUURBZ0trTUIwR0ExVWRKUVFXCk1CUUdDQ3NHQVFVRkJ3TUNCZ2dyQmdFRkJRY0RBVEFQQmdOVkhSTUJBZjhFQlRBREFRSC9NQTBHQ1NxR1NJYjMKRFFFQkN3VUFBNElCQVFBN2NTcnpIaG1jQVVkL3pNam42UTljV1JqQmxjWm5uSml5NTF4dldCem4zWEZIK3dnVQpJdUFLbzFpeFpBQ3Yxb3ZCb1FraUwxSXA2eEYwcUh0VFVwOTkrMEppSHZXSngxeExkUlBNdEtaUVNoMm5NSnlSClJqNWdUeEVhMy9oa2g1QjVYV0ZPZW1PS3dMdW5Oc0NsMUFwYnppUTdqQmt2TGFXSERyQmFmNUFIbnhaajE4bHIKK0pkclNVdjBEZjV0UzhTNm50TmlnaVpNU1A0Z01reWt0QnloUjhVNk9UWUl0V0crT1FLcmxJdm14cGtFNk5qNgo0T2dSRnIwOGJVcXIvbE5qc0V6YWt0aGVCYzFmbDFzZjBlWFNCUlpyV08zY2Z3ZFBkd2EweU0zM051QUJnenh3CkpiMjNyZ0pSOWlISWp0YlBYaC80QWYySHdnWFNVTy9tSUhDawotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
+    rules:
+      - operations: [ "CREATE" ]
+        apiGroups: [""]
+        apiVersions: ["v1"]
+        resources: ["pods"]
+    namespaceSelector:
+      matchLabels:
+        env-injector: enabled
