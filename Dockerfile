@@ -1,5 +1,12 @@
-#FROM alpine:latest
+FROM golang:1.13-buster as build
+
+WORKDIR /go/src/app
+ADD . /go/src/app
+RUN go get -u -t ./...
+RUN CGO_ENABLED=0 GOOS=linux GO111MODULE="on" go build -a -installsuffix cgo -o /go/bin/app/k8s-env-injector .
+
+
 FROM gcr.io/distroless/static
 
-ADD k8s-env-injector /k8s-env-injector
+COPY --from=build /go/bin/app /
 ENTRYPOINT ["./k8s-env-injector"]
