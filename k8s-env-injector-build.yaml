@@ -1,0 +1,4 @@
+version: v1.0.0
+steps:
+  - build: -t {{.Run.Registry}}/k8s-env-injector:{{.Run.ID}} -f Dockerfile .
+  - push: ["{{.Run.Registry}}/k8s-env-injector:{{.Run.ID}}"]
