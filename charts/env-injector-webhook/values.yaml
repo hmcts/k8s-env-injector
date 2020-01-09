@@ -1,0 +1,3 @@
+environment:
+  CLUSTER_NAME: aks-test-01
+serviceAccountName: flux-helm-operator

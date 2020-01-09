@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "chart-env-injector.name" . }}-svc
+  labels:
+    app.kubernetes.io/name: {{ include "chart-env-injector.name" . }}
+spec:
+  ports:
+  - port: 443
+    targetPort: 443
+  selector:
+    app.kubernetes.io/name: {{ include "chart-env-injector.name" . }}

@@ -1,17 +1,16 @@
 apiVersion: admissionregistration.k8s.io/v1beta1
 kind: MutatingWebhookConfiguration
 metadata:
-  name: env-injector-webhook-cfg
+  name: {{ include "chart-env-injector.name" . }}-cfg
   labels:
-    app: env-injector
+    app.kubernetes.io/name: {{ include "chart-env-injector.name" . }}
 webhooks:
   - name: env-injector.hmcts.net
     clientConfig:
       service:
-        name: env-injector-webhook-svc
-        namespace: admin
+        name: {{ include "chart-env-injector.name" . }}-svc
+        namespace: {{ .Release.Namespace }}
         path: "/mutate"
-      caBundle: ${CA_BUNDLE}
     rules:
       - operations: [ "CREATE" ]
         apiGroups: [""]

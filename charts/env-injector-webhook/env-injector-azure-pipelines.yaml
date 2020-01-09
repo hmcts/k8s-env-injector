@@ -1,0 +1,29 @@
+name: chart-env-injector-webhook pipeline
+trigger:
+  - master
+pr: none
+resources:
+  repositories:
+    - repository: cnp-library
+      type: github
+      name: hmcts/cnp-azuredevops-libraries
+      endpoint: 'hmcts'
+
+jobs:
+  - job: Release
+    pool:
+      name: hmcts-sandbox-agent-pool
+    steps:
+      - template: steps/charts/release.yaml@cnp-library
+        parameters :
+          chartName: env-injector-webhook
+          chartReleaseName: chart-env-injector-webhook-ci
+          chartNamespace: chart-tests
+          acrName: "hmctspublic"
+          helmDeleteWait: "300"
+          helmInstallWait: "300"
+          serviceConnection: "DCD-CFTAPPS-SBOX"
+          registryServiceConnection: "azurerm-prod"
+          aksResourceGroup: "sbox-01-rg"
+          aksCluster: "sbox-01-aks"
+          helmVersion: "2.11.0"
