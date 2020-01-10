@@ -62,10 +62,10 @@ data:
         shift
     done
 
-    [ -z ${service} ] && service=env-injector-webhook-svc
-    [ -z ${secret} ] && secret=env-injector-webhook-certs
+    [ -z ${service} ] && service={{ include "chart-env-injector.name" . }}-svc
+    [ -z ${secret} ] && secret={{ include "chart-env-injector.name" . }}-certs
     [ -z ${namespace} ] && namespace={{ .Release.Namespace }}
-    [ -z ${webhook} ] && webhook=env-injector-webhook-cfg
+    [ -z ${webhook} ] && webhook={{ include "chart-env-injector.name" . }}-cfg
 
     if [ ! -x "$(command -v openssl)" ]; then
         echo "openssl not found"
