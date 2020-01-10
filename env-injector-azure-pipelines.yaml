@@ -16,7 +16,7 @@ jobs:
     steps:
       - template: steps/charts/release.yaml@cnp-library
         parameters :
-          chartName: charts/env-injector-webhook
+          chartName: env-injector-webhook
           chartReleaseName: chart-env-injector-webhook-ci
           chartNamespace: chart-tests
           acrName: "hmctspublic"
