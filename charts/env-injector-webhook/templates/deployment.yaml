@@ -1,23 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: env-injector-webhook-deployment
+  name: {{ include "chart-env-injector.name" . }}-deployment
   labels:
-    app: env-injector
+    {{- ( include "chart-env-injector.labels" . ) | indent 4 }}
 spec:
-  replicas: 1
+  replicas: {{ .Values.replicas }}
   selector:
     matchLabels:
-      app: env-injector
+      app.kubernetes.io/name: {{ include "chart-env-injector.name" . }}
   template:
     metadata:
       labels:
-        app: env-injector
+        {{- ( include "chart-env-injector.labels" . ) | indent 8 }}
     spec:
       containers:
         - name: env-injector
-          image: hmctspublic.azurecr.io/k8s-env-injector:db1t99
-          imagePullPolicy: Always
+          image: {{ .Values.image }}
+          imagePullPolicy: IfNotPresent
           args:
             - -envCfgFile=/etc/webhook/config/envconfig.yaml
             - -tlsCertFile=/etc/webhook/certs/cert.pem
@@ -34,7 +34,7 @@ spec:
       volumes:
         - name: webhook-certs
           secret:
-            secretName: env-injector-webhook-certs
+            secretName: {{ include "chart-env-injector.name" . }}-certs
         - name: webhook-config
           configMap:
-            name: env-injector-webhook-configmap
+            name: {{ include "chart-env-injector.name" . }}-configmap

@@ -63,9 +63,9 @@ env-injector-webhook-deployment   1         1         1            1           5
 
 2. Label the default namespace with `env-injector=enabled`
 ```
-$ kubectl label namespace default env-injector=enabled
-$ kubectl get namespace -L env-injector
-NAME              STATUS   AGE    ENV-INJECTOR
+$ kubectl label namespace default hmcts.github.com/envInjector=enabled
+$ kubectl get namespace -L hmcts.github.com/envInjector
+NAME              STATUS   AGE    ENVINJECTOR
 default           Active   4d3h   enabled
 kube-node-lease   Active   4d3h   
 kube-public       Active   4d3h   
@@ -90,13 +90,21 @@ spec:
       - name: sleep
         image: tutum/curl
         command: ["/bin/sleep","infinity"]
-        imagePullPolicy: always
+        imagePullPolicy: Always
 EOF
 ```
 
 4. Verify environment injected by describing the pod
 ```
 $ kubectl describe pod ...
+```
+
+## Helm chart
+
+A Helm chart is also available, see [env-injector-webhook](charts/env-injector-webhook/Chart.yaml).
+This can be installed in a single step using helm 2 or 3, e.g.
+```
+$ helm upgrade env-injector-webhook env-injector-webhook --install --namespace admin
 ```
 
 ## Notes
