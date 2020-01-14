@@ -4,9 +4,14 @@ metadata:
   name: {{ include "chart-env-injector.name" . }}-ca-config
   namespace: {{ .Release.Namespace }}
   labels:
-    chart: {{ template "chart-env-injector.chart" . }}
+    app.kubernetes.io/name: {{ include "chart-env-injector.name" . }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ template "chart-env-injector.chart" . }}
     release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation
+    "helm.sh/hook-weight": "-3"
 data:
   config.sh: |
     #!/bin/bash

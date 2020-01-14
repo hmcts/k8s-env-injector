@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "chart-env-injector.name" . }}-cleanup-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ include "chart-env-injector.name" . }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ template "chart-env-injector.chart" . }}
+    release: {{ .Release.Name }}
+  annotations:
+    "helm.sh/hook": post-delete,pre-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation
+    "helm.sh/hook-weight": "-8"
+data:
+  config.sh: |
+    #!/bin/bash
+
+    kubectl delete mutatingwebhookconfigurations.admissionregistration.k8s.io {{ include "chart-env-injector.name" . }}-cfg
+    kubectl delete secret {{ include "chart-env-injector.name" . }}-certs -n {{ .Release.Namespace }}

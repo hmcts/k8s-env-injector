@@ -88,8 +88,8 @@ spec:
     spec:
       containers:
       - name: sleep
-        image: tutum/curl
-        command: ["/bin/sleep","infinity"]
+        image: hmctspublic.azurecr.io/docker-curl
+        command: ["sleep","1d"]
         imagePullPolicy: Always
 EOF
 ```
@@ -106,6 +106,14 @@ This can be installed in a single step using helm 2 or 3, e.g.
 ```
 $ helm upgrade env-injector-webhook env-injector-webhook --install --namespace admin
 ```
+
+*Note*: As the pods and service need to have:
+- a secret containing a signed certificate and key
+- a mutating webhook patched with the CA Bundle
+the script executed from `pre-install-job.yaml` takes care of creating them executing as a helm pre-install + pre-upgrade hook. 
+This allows the installation/upgrade steps to execute in the right order, but has the (unfortunate) side effect of leaving 
+around the secret and mutating webhook when the chart is deleted. 
+For that reason a pre-upgrade + post-delete helm hooks takes care of deleting secret and admission webhook.
 
 ## Notes
 

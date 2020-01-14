@@ -4,6 +4,9 @@ metadata:
   name: {{ include "chart-env-injector.name" . }}-svc
   labels:
     app.kubernetes.io/name: {{ include "chart-env-injector.name" . }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ template "chart-env-injector.chart" . }}
+    release: {{ .Release.Name }}
 spec:
   ports:
   - port: 443
