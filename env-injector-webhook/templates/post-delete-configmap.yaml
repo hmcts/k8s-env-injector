@@ -4,9 +4,10 @@ metadata:
   name: {{ include "chart-env-injector.name" . }}-cleanup-config
   namespace: {{ .Release.Namespace }}
   labels:
+    app.kubernetes.io/name: {{ include "chart-env-injector.name" . }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
     chart: {{ template "chart-env-injector.chart" . }}
     release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
   annotations:
     "helm.sh/hook": post-delete,pre-upgrade
     "helm.sh/hook-delete-policy": before-hook-creation

@@ -4,9 +4,10 @@ metadata:
   name: {{ include "chart-env-injector.name" . }}-configmap
   namespace: {{ .Release.Namespace }}
   labels:
+    app.kubernetes.io/name: {{ include "chart-env-injector.name" . }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
     chart: {{ template "chart-env-injector.chart" . }}
     release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
 data:
   envconfig.yaml: |
     env:
