@@ -6,7 +6,7 @@ metadata:
   labels:
     app.kubernetes.io/name: {{ include "chart-env-injector.name" . }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
-    chart: {{ template "chart-env-injector.chart" . }}
+    helm.sh/chart: {{ template "chart-env-injector.chart" . }}
     release: {{ .Release.Name }}
   annotations:
     "helm.sh/hook": post-delete,pre-upgrade
