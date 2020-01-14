@@ -88,8 +88,8 @@ spec:
     spec:
       containers:
       - name: sleep
-        image: tutum/curl
-        command: ["/bin/sleep","infinity"]
+        image: hmctspublic.azurecr.io/docker-curl
+        command: ["sleep","1d"]
         imagePullPolicy: Always
 EOF
 ```
