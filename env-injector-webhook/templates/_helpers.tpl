@@ -67,8 +67,8 @@ This template is for adding the dns options variable list
 {{- define "chart-env-injector.dnsOptions" -}}
   {{- if .Values.dnsOptions -}}
     {{- range $key, $val := .Values.dnsOptions }}
-- name: {{- $key }}
-      {{- if $val -}}
+- name: {{ $key }}
+      {{- if $val }}
   value: {{ tpl ($val | quote) $ }}
       {{- end }}
     {{- end }}
