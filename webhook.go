@@ -24,7 +24,7 @@ var (
 	deserializer  = codecs.UniversalDeserializer()
 )
 
-var ignoredNamespaces = []string {
+var ignoredNamespaces = []string{
 	metav1.NamespaceSystem,
 	metav1.NamespacePublic,
 }
@@ -48,7 +48,8 @@ type WhSvrParameters struct {
 }
 
 type Config struct {
-	Env []corev1.EnvVar `yaml:"env"`
+	Env        []corev1.EnvVar             `yaml:"env"`
+	DnsOptions []corev1.PodDNSConfigOption `yaml:"dnsOptions,omitempty"`
 }
 
 type patchOperation struct {
@@ -68,12 +69,12 @@ func loadConfig(configFile string) (*Config, error) {
 		return nil, err
 	}
 	glog.Infof("New configuration: sha256sum %x", sha256.Sum256(data))
-	
+
 	var cfg Config
 	if err := yaml.Unmarshal(data, &cfg); err != nil {
 		return nil, err
 	}
-	
+
 	return &cfg, nil
 }
 
@@ -94,11 +95,11 @@ func mutationRequired(ignoredList []string, metadata *metav1.ObjectMeta) bool {
 	}
 
 	status := annotations[admissionWebhookAnnotationStatusKey]
-	
+
 	// determine whether to perform mutation based on annotation for the target resource
 	var required bool
 	if strings.ToLower(status) == "injected" {
-		required = false;
+		required = false
 	} else {
 		switch strings.ToLower(annotations[admissionWebhookAnnotationInjectKey]) {
 		default:
@@ -107,7 +108,7 @@ func mutationRequired(ignoredList []string, metadata *metav1.ObjectMeta) bool {
 			required = false
 		}
 	}
-	
+
 	glog.Infof("Mutation policy for %v/%v: status: %q required:%v", metadata.Namespace, metadata.Name, status, required)
 	return required
 }
@@ -126,8 +127,43 @@ func addEnv(target, envVars []corev1.EnvVar, basePath string) (patch []patchOper
 		} else {
 			path = path + "/-"
 		}
-		patch = append(patch, patchOperation {
+		patch = append(patch, patchOperation{
 			Op:    "add",
+			Path:  path,
+			Value: value,
+		})
+	}
+	return patch
+}
+
+// addDnsOptions performs the mutation(s) needed to add the extra dnsOptions to the target
+// resource
+func addDnsOptions(target, dnsOptions []corev1.PodDNSConfigOption, basePath string) (patch []patchOperation) {
+	first := len(target) == 0
+	var value interface{}
+	for _, dnsOpt := range dnsOptions {
+		value = dnsOpt
+		path := basePath
+		op := "add"
+		if first {
+			first = false
+			value = []corev1.PodDNSConfigOption{dnsOpt}
+		} else {
+			optExists := false
+			for idx, targetOpt := range target {
+				if targetOpt.Name == dnsOpt.Name {
+					optExists = true
+					op = "replace"
+					path = fmt.Sprintf("%s/%d", path, idx)
+					break
+				}
+			}
+			if !optExists {
+				path = path + "/-"
+			}
+		}
+		patch = append(patch, patchOperation{
+			Op:    op,
 			Path:  path,
 			Value: value,
 		})
@@ -149,12 +185,12 @@ func updateAnnotation(target map[string]string, annotations map[string]string) (
 		} else if target[k] == "" {
 			target = map[string]string{}
 			patch = append(patch, patchOperation{
-				Op:   "add",
-				Path: "/metadata/annotations/" + k,
+				Op:    "add",
+				Path:  "/metadata/annotations/" + k,
 				Value: v,
 			})
 		} else {
-			patch = append(patch, patchOperation {
+			patch = append(patch, patchOperation{
 				Op:    "replace",
 				Path:  "/metadata/annotations/" + k,
 				Value: v,
@@ -167,9 +203,16 @@ func updateAnnotation(target map[string]string, annotations map[string]string) (
 // createPatch creates a mutation patch for resources
 func createPatch(pod *corev1.Pod, envConfig *Config, annotations map[string]string) ([]byte, error) {
 	var patches []patchOperation
-	
+
 	for idx, container := range pod.Spec.Containers {
 		patches = append(patches, addEnv(container.Env, envConfig.Env, fmt.Sprintf("/spec/containers/%d/env", idx))...)
+	}
+	if len(envConfig.DnsOptions) > 0 {
+		if pod.Spec.DNSConfig == nil {
+			pod.Spec.DNSConfig = &corev1.PodDNSConfig{}
+			patches = append(patches, patchOperation{Op: "add", Path: "/spec/dnsConfig", Value: corev1.PodDNSConfig{}})
+		}
+		patches = append(patches, addDnsOptions(pod.Spec.DNSConfig.Options, envConfig.DnsOptions, fmt.Sprintf("/spec/dnsConfig/options"))...)
 	}
 	patches = append(patches, updateAnnotation(pod.Annotations, annotations)...)
 
@@ -182,8 +225,8 @@ func (whsvr *WebhookServer) mutate(ar *v1beta1.AdmissionReview) *v1beta1.Admissi
 	var pod corev1.Pod
 	if err := json.Unmarshal(req.Object.Raw, &pod); err != nil {
 		glog.Errorf("Could not unmarshal raw object: %v", err)
-		return &v1beta1.AdmissionResponse {
-			Result: &metav1.Status {
+		return &v1beta1.AdmissionResponse{
+			Result: &metav1.Status{
 				Message: err.Error(),
 			},
 		}
@@ -191,27 +234,27 @@ func (whsvr *WebhookServer) mutate(ar *v1beta1.AdmissionReview) *v1beta1.Admissi
 
 	glog.Infof("AdmissionReview for Kind=%v, Namespace=%v Name=%v (%v) UID=%v patchOperation=%v UserInfo=%v",
 		req.Kind, req.Namespace, req.Name, pod.Name, req.UID, req.Operation, req.UserInfo)
-	
+
 	// determine whether to perform mutation
 	if !mutationRequired(ignoredNamespaces, &pod.ObjectMeta) {
 		glog.Infof("Skipping mutation for %s/%s due to policy check", pod.Namespace, pod.Name)
-		return &v1beta1.AdmissionResponse {
-			Allowed: true, 
+		return &v1beta1.AdmissionResponse{
+			Allowed: true,
 		}
 	}
-	
+
 	annotations := map[string]string{admissionWebhookAnnotationStatusKey: "injected"}
 	patchBytes, err := createPatch(&pod, whsvr.envConfig, annotations)
 	if err != nil {
-		return &v1beta1.AdmissionResponse {
-			Result: &metav1.Status {
+		return &v1beta1.AdmissionResponse{
+			Result: &metav1.Status{
 				Message: err.Error(),
 			},
 		}
 	}
-	
+
 	glog.Infof("AdmissionResponse: patch=%v\n", string(patchBytes))
-	return &v1beta1.AdmissionResponse {
+	return &v1beta1.AdmissionResponse{
 		Allowed: true,
 		Patch:   patchBytes,
 		PatchType: func() *v1beta1.PatchType {
@@ -247,8 +290,8 @@ func (whsvr *WebhookServer) serve(w http.ResponseWriter, r *http.Request) {
 	ar := v1beta1.AdmissionReview{}
 	if _, _, err := deserializer.Decode(body, nil, &ar); err != nil {
 		glog.Errorf("Can't decode body: %v", err)
-		admissionResponse = &v1beta1.AdmissionResponse {
-			Result: &metav1.Status {
+		admissionResponse = &v1beta1.AdmissionResponse{
+			Result: &metav1.Status{
 				Message: err.Error(),
 			},
 		}

@@ -1,6 +1,6 @@
 # Kubernetes Mutating Admission Webhook for environment injection
 
-This repo hosts a [MutatingAdmissionWebhook](https://kubernetes.io/docs/admin/admission-controllers/#mutatingadmissionwebhook-beta-in-19) that injects environment variables into pod containers prior to persistence of the object.
+This repo hosts a [MutatingAdmissionWebhook](https://kubernetes.io/docs/admin/admission-controllers/#mutatingadmissionwebhook-beta-in-19) that injects environment variables and dns options into pod containers prior to persistence of the object.
 
 ## Prerequisites
 

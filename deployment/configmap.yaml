@@ -7,3 +7,8 @@ data:
     env:
       - name: CLUSTER_NAME
         value: aks-test-01
+    dnsOptions:
+      - name: ndots
+        value: 3
+      - name: single-request-reopen
+      - name: use-vc

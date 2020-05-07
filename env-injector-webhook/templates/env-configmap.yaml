@@ -12,3 +12,5 @@ data:
   envconfig.yaml: |
     env:
       {{- (include "chart-env-injector.environment" .) | indent 6 }}
+    dnsOptions:
+      {{- (include "chart-env-injector.dnsOptions" .) | indent 6 }}
