@@ -14,11 +14,7 @@ resources:
 jobs:
   - job: Release
     # Make sure we have a tag to run this job
-    condition: >
-      and(
-          succeeded(),
-          startsWith(variables['Build.SourceBranch'], 'refs/tags/')
-        )
+    condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
     pool:
       name: hmcts-sandbox-agent-pool
     steps:
