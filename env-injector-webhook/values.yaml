@@ -3,7 +3,7 @@ replicas: 2
 environment:
   CLUSTER_NAME: aks-test-01
 dnsOptions:
-  - ndots: 3
-  - single-request-reopen:
-  - use-vc:
+  ndots: 3
+  single-request-reopen:
+  use-vc:
 serviceAccountName: flux-helm-operator
