@@ -1,21 +1,29 @@
 name: chart-env-injector-webhook pipeline
 trigger:
-  - master
-pr: none
+  branches:
+    include:
+      - refs/tags/*
 resources:
   repositories:
     - repository: cnp-library
       type: github
+      ref: refs/heads/master
       name: hmcts/cnp-azuredevops-libraries
       endpoint: 'hmcts'
 
 jobs:
   - job: Release
+    # Make sure we have a tag to run this job
+    condition: >
+      and(
+          succeeded(),
+          startsWith(variables['Build.SourceBranch'], 'refs/tags/')
+        )
     pool:
       name: hmcts-sandbox-agent-pool
     steps:
       - template: steps/charts/release.yaml@cnp-library
-        parameters :
+        parameters:
           chartName: env-injector-webhook
           chartReleaseName: chart-env-injector-webhook-ci
           chartNamespace: chart-tests
@@ -26,4 +34,3 @@ jobs:
           registryServiceConnection: "azurerm-prod"
           aksResourceGroup: "sbox-01-rg"
           aksCluster: "sbox-01-aks"
-          helmVersion: "2.11.0"
