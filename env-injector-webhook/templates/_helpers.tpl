@@ -45,7 +45,7 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end -}}
 
 {{/*
-This template is for adding the environment variable list and checking the format of the keys
+Template to add the environment variable list and checking the format of the keys
 The key or "environment variable" must be uppercase and contain only numbers or "_".
 */}}
 {{- define "chart-env-injector.environment" -}}
@@ -62,7 +62,7 @@ The key or "environment variable" must be uppercase and contain only numbers or 
 {{- end }}
 
 {{/*
-This template is for adding the dns options variable list
+Template to add the dns options
 */}}
 {{- define "chart-env-injector.dnsOptions" -}}
   {{- if .Values.dnsOptions -}}

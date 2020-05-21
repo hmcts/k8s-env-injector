@@ -1,6 +1,7 @@
 # Kubernetes Mutating Admission Webhook for environment injection
 
-This repo hosts a [MutatingAdmissionWebhook](https://kubernetes.io/docs/admin/admission-controllers/#mutatingadmissionwebhook-beta-in-19) that injects environment variables and dns options into pod containers prior to persistence of the object.
+This repo hosts a [MutatingAdmissionWebhook](https://kubernetes.io/docs/admin/admission-controllers/#mutatingadmissionwebhook-beta-in-19) that injects environment variables, dns options and node affinity into pod containers prior to persistence of the object.
+Node affinity is currently limited to RequiredDuringSchedulingIgnoredDuringExecution selector terms.
 
 ## Prerequisites
 
@@ -113,7 +114,7 @@ $ helm upgrade env-injector-webhook env-injector-webhook --install --namespace a
 the script executed from `pre-install-job.yaml` takes care of creating them executing as a helm pre-install + pre-upgrade hook. 
 This allows the installation/upgrade steps to execute in the right order, but has the (unfortunate) side effect of leaving 
 around the secret and mutating webhook when the chart is deleted. 
-For that reason a pre-upgrade + post-delete helm hooks takes care of deleting secret and admission webhook.
+For that reason a pre-upgrade + post-delete helm hook takes care of deleting secret and admission webhook.
 
 ## Notes
 

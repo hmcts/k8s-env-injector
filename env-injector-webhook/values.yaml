@@ -1,4 +1,4 @@
-image: hmctspublic.azurecr.io/k8s-env-injector:db1t99
+image: hmctspublic.azurecr.io/k8s-env-injector:db413a
 replicas: 2
 environment:
   CLUSTER_NAME: aks-test-01
@@ -6,4 +6,11 @@ dnsOptions:
   ndots: 3
   single-request-reopen:
   use-vc:
+nodeAffinityTerms: {}
+#  - matchExpressions:
+#      - key: agentpool
+#        operator: In
+#        values:
+#          - ubuntu18
+#          - ubuntu1804
 serviceAccountName: flux-helm-operator
