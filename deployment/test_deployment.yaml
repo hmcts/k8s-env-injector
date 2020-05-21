@@ -34,4 +34,3 @@ spec:
 #        env:
 #          - name: SOME_KEY_1
 #            value: SOME_VALUE_1
-
