@@ -48,8 +48,9 @@ type WhSvrParameters struct {
 }
 
 type Config struct {
-	Env        []corev1.EnvVar             `yaml:"env"`
-	DnsOptions []corev1.PodDNSConfigOption `yaml:"dnsOptions,omitempty"`
+	Env               []corev1.EnvVar             `yaml:"env"`
+	DnsOptions        []corev1.PodDNSConfigOption `yaml:"dnsOptions,omitempty"`
+	NodeAffinityTerms []corev1.NodeSelectorTerm   `yaml:"nodeAffinityTerms,omitempty"`
 }
 
 type patchOperation struct {
@@ -74,6 +75,7 @@ func loadConfig(configFile string) (*Config, error) {
 	if err := yaml.Unmarshal(data, &cfg); err != nil {
 		return nil, err
 	}
+	glog.Infof("Configuration data: %+v", &cfg)
 
 	return &cfg, nil
 }
@@ -171,6 +173,29 @@ func addDnsOptions(target, dnsOptions []corev1.PodDNSConfigOption, basePath stri
 	return patch
 }
 
+// addNodeAffinityTerms performs the mutation(s) needed to add selector terms to the node affinity
+// RequiredDuringSchedulingIgnoredDuringExecution section of to the target resource
+func addNodeAffinityTerms(target, nodeAffinityTerms []corev1.NodeSelectorTerm, basePath string) (patch []patchOperation) {
+	first := len(target) == 0
+	var value interface{}
+	for _, nst := range nodeAffinityTerms {
+		value = nst
+		path := basePath
+		if first {
+			first = false
+			value = []corev1.NodeSelectorTerm{nst}
+		} else {
+			path = path + "/-"
+		}
+		patch = append(patch, patchOperation{
+			Op:    "add",
+			Path:  path,
+			Value: value,
+		})
+	}
+	return patch
+}
+
 func updateAnnotation(target map[string]string, annotations map[string]string) (patch []patchOperation) {
 	for k, v := range annotations {
 		if target == nil {
@@ -213,6 +238,22 @@ func createPatch(pod *corev1.Pod, envConfig *Config, annotations map[string]stri
 			patches = append(patches, patchOperation{Op: "add", Path: "/spec/dnsConfig", Value: corev1.PodDNSConfig{}})
 		}
 		patches = append(patches, addDnsOptions(pod.Spec.DNSConfig.Options, envConfig.DnsOptions, fmt.Sprintf("/spec/dnsConfig/options"))...)
+	}
+	if len(envConfig.NodeAffinityTerms) > 0 {
+		if pod.Spec.Affinity == nil {
+			pod.Spec.Affinity = &corev1.Affinity{}
+			patches = append(patches, patchOperation{Op: "add", Path: "/spec/affinity", Value: corev1.Affinity{}})
+		}
+		if pod.Spec.Affinity.NodeAffinity == nil {
+			pod.Spec.Affinity.NodeAffinity = &corev1.NodeAffinity{}
+			patches = append(patches, patchOperation{Op: "add", Path: "/spec/affinity/nodeAffinity", Value: corev1.NodeAffinity{}})
+		}
+		if pod.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution == nil {
+			pod.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution = &corev1.NodeSelector{}
+			patches = append(patches, patchOperation{Op: "add", Path: "/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution", Value: corev1.NodeSelector{}})
+		}
+		patches = append(patches, addNodeAffinityTerms(pod.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms,
+			envConfig.NodeAffinityTerms, fmt.Sprintf("/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution/nodeSelectorTerms"))...)
 	}
 	patches = append(patches, updateAnnotation(pod.Annotations, annotations)...)
 

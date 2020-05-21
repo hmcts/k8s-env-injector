@@ -6,4 +6,11 @@ dnsOptions:
   ndots: 3
   single-request-reopen:
   use-vc:
+nodeAffinityTerms: {}
+#  - matchExpressions:
+#      - key: agentpool
+#        operator: In
+#        values:
+#          - ubuntu18
+#          - ubuntu1804
 serviceAccountName: flux-helm-operator

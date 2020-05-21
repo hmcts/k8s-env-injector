@@ -17,19 +17,29 @@ func TestLoadConfig(t *testing.T) {
 		{"test/env_test_1.yaml",
 			&Config{
 				[]corev1.EnvVar{{Name: "CLUSTER_NAME", Value: "aks-test-01", ValueFrom: nil}},
-				nil},
+				nil, nil},
 		},
 		{"test/env_test_2.yaml",
 			&Config{[]corev1.EnvVar{{Name: "CLUSTER_NAME", Value: "aks-test-01", ValueFrom: nil},
 				{Name: "SUBSCRIPTION", Value: "subscription-00", ValueFrom: nil}},
-				nil},
+				nil, nil},
 		},
 		{"test/env_test_3.yaml",
 			&Config{[]corev1.EnvVar{{Name: "CLUSTER_NAME", Value: "aks-test-01", ValueFrom: nil},
 				{Name: "SUBSCRIPTION", Value: "subscription-00", ValueFrom: nil}},
 				[]corev1.PodDNSConfigOption{{Name: "ndots", Value: &ndotsVal},
 					{Name: "single-request-reopen", Value: nil},
-					{Name: "use-vc", Value: nil}}},
+					{Name: "use-vc", Value: nil}},
+				nil},
+		},
+		{"test/env_test_4.yaml",
+			&Config{[]corev1.EnvVar{{Name: "CLUSTER_NAME", Value: "aks-test-01", ValueFrom: nil},
+				{Name: "SUBSCRIPTION", Value: "subscription-00", ValueFrom: nil}},
+				[]corev1.PodDNSConfigOption{{Name: "ndots", Value: &ndotsVal},
+					{Name: "single-request-reopen", Value: nil},
+					{Name: "use-vc", Value: nil}},
+				[]corev1.NodeSelectorTerm{{MatchExpressions: []corev1.NodeSelectorRequirement{
+					{Key: "agentpool", Operator: corev1.NodeSelectorOpIn, Values: []string{"ubuntu18", "ubuntu1804"}}}}}},
 		},
 	}
 
@@ -179,6 +189,40 @@ func TestAddDnsOptions(t *testing.T) {
 		patch := addDnsOptions(e.targetOptions, e.sourceOptions, e.path)
 		if !cmp.Equal(patch, e.patch) {
 			t.Errorf("addDnsOptions was incorrect, for %v, got: %v, want: %v.", e.targetOptions, patch, e.patch)
+		}
+	}
+
+}
+
+func TestAddNodeAffinity(t *testing.T) {
+	envs := []struct {
+		targetTerms []corev1.NodeSelectorTerm
+		sourceTerms []corev1.NodeSelectorTerm
+		path        string
+		patch       []patchOperation
+	}{
+		{targetTerms: []corev1.NodeSelectorTerm{},
+			sourceTerms: []corev1.NodeSelectorTerm{{MatchExpressions: []corev1.NodeSelectorRequirement{
+				{Key: "agentpool", Operator: corev1.NodeSelectorOpIn, Values: []string{"ubuntu18", "ubuntu1804"}}}}},
+			path: "/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution",
+			patch: []patchOperation{{Op: "add", Path: "/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution",
+				Value: []corev1.NodeSelectorTerm{{MatchExpressions: []corev1.NodeSelectorRequirement{
+					{Key: "agentpool", Operator: corev1.NodeSelectorOpIn, Values: []string{"ubuntu18", "ubuntu1804"}}}}}}},
+		},
+		{targetTerms: []corev1.NodeSelectorTerm{{MatchExpressions: []corev1.NodeSelectorRequirement{
+			{Key: "zone", Operator: corev1.NodeSelectorOpIn, Values: []string{"uksouth"}}}}},
+			sourceTerms: []corev1.NodeSelectorTerm{{MatchExpressions: []corev1.NodeSelectorRequirement{
+				{Key: "agentpool", Operator: corev1.NodeSelectorOpIn, Values: []string{"ubuntu18", "ubuntu1804"}}}}},
+			path: "/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution",
+			patch: []patchOperation{{Op: "add", Path: "/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution/-",
+				Value: corev1.NodeSelectorTerm{MatchExpressions: []corev1.NodeSelectorRequirement{
+					{Key: "agentpool", Operator: corev1.NodeSelectorOpIn, Values: []string{"ubuntu18", "ubuntu1804"}}}}}},
+		},
+	}
+	for _, e := range envs {
+		patch := addNodeAffinityTerms(e.targetTerms, e.sourceTerms, e.path)
+		if !cmp.Equal(patch, e.patch) {
+			t.Errorf("addNodeAffinityTerms was incorrect, for %v, got: %v, want: %v.", e.targetTerms, patch, e.patch)
 		}
 	}
 

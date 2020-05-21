@@ -17,6 +17,16 @@ spec:
 #      dnsConfig:
 #        options:
 #          - name: use-vc
+#      affinity:
+#        podAntiAffinity:
+#          requiredDuringSchedulingIgnoredDuringExecution:
+#            - labelSelector:
+#                matchExpressions:
+#                  - key: app
+#                    operator: In
+#                    values:
+#                      - sleep
+#              topologyKey: "kubernetes.io/hostname"
       containers:
       - name: sleep
         image: tutum/curl
