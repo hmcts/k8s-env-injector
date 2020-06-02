@@ -10,8 +10,8 @@ data:
     dnsOptions:
       - name: ndots
         value: 3
-      - name: single-request-reopen
-      - name: use-vc
+#      - name: single-request-reopen
+#      - name: use-vc
 #    nodeAffinityTerms:
 #      - matchExpressions:
 #          - key: agentpool
