@@ -20,20 +20,20 @@ rules:
   - apiGroups:
       - 'certificates.k8s.io'
     resources:
-      - 'CertificateSigningRequest'
+      - '*'
     verbs:
       - '*'
   - apiGroups:
       - ''
     resources:
-      - 'secret'
+      - 'secrets'
     verbs:
       - 'create'
       - 'delete'
   - apiGroups:
       - 'admissionregistration.k8s.io'
     resources:
-      - 'MutatingWebhookConfiguration'
+      - 'mutatingwebhookconfigurations'
     verbs:
       - 'create'
       - 'delete'
