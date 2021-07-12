@@ -28,8 +28,7 @@ rules:
     resources:
       - 'secrets'
     verbs:
-      - 'create'
-      - 'delete'
+      - '*'
   - apiGroups:
       - 'admissionregistration.k8s.io'
     resources:
