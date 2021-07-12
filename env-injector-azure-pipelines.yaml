@@ -28,5 +28,5 @@ jobs:
           helmInstallWait: "300"
           serviceConnection: "DCD-CFTAPPS-SBOX"
           registryServiceConnection: "azurerm-prod"
-          aksResourceGroup: "sbox-01-rg"
-          aksCluster: "sbox-01-aks"
+          aksResourceGroup: "cft-sbox-01-rg"
+          aksCluster: "cft-sbox-01-aks"
