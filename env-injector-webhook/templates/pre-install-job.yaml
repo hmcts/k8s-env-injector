@@ -20,7 +20,7 @@ spec:
         app.kubernetes.io/name: {{ template "chart-env-injector.name" . }}
     spec:
       restartPolicy: OnFailure
-      serviceAccountName: {{ .Values.serviceAccountName }}
+      serviceAccountName: env-injector
       containers:
         - name: pre-install-job
           image: bitnami/kubectl:latest
