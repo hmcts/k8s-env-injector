@@ -34,9 +34,7 @@ rules:
     resources:
       - 'mutatingwebhookconfigurations'
     verbs:
-      - 'create'
-      - 'delete'
-
+      - '*'
 ---
 
 apiVersion: rbac.authorization.k8s.io/v1
