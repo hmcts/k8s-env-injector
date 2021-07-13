@@ -12,7 +12,7 @@ rules:
     resources:
       - 'pods'
       - 'namespaces'
-      - 'configmap'
+      - 'configmaps'
     verbs:
       - 'get'
       - 'list'
