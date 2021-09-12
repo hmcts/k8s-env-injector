@@ -5,13 +5,13 @@ Node affinity is currently limited to RequiredDuringSchedulingIgnoredDuringExecu
 
 ## Prerequisites
 
-Kubernetes 1.9.0 or above with the `admissionregistration.k8s.io/v1beta1` API enabled. Verify that by the following command:
+Kubernetes 1.16.0 or above with the `admissionregistration.k8s.io/v1` API enabled. Verify that by the following command:
 ```
-kubectl api-versions | grep admissionregistration.k8s.io/v1beta1
+kubectl api-versions | grep admissionregistration.k8s.io/v1
 ```
 The result should be:
 ```
-admissionregistration.k8s.io/v1beta1
+admissionregistration.k8s.io/v1
 ```
 
 In addition, the `MutatingAdmissionWebhook` and `ValidatingAdmissionWebhook` admission controllers should be added and listed in the correct order in the admission-control flag of kube-apiserver.
@@ -76,7 +76,7 @@ kube-system       Active   4d3h
 3. Deploy an app in Kubernetes cluster, take `sleep` app as an example
 ```
 $ cat <<EOF | kubectl create -f -
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: sleep
