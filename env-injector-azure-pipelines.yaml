@@ -16,7 +16,7 @@ jobs:
     # Make sure we have a tag to run this job
     condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
     pool:
-      name: hmcts-sandbox-agent-pool
+      vmImage: 'ubuntu-latest'
     steps:
       - template: steps/charts/release.yaml@cnp-library
         parameters:
