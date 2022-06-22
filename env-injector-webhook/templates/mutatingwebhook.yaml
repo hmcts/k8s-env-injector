@@ -13,7 +13,7 @@ metadata:
     "helm.sh/hook-weight": "-5"
 webhooks:
   - name: env-injector.hmcts.net
-    admissionReviewVersions: [“v1”, “v1beta1"]
+    admissionReviewVersions: [v1, v1beta1]
     sideEffects: NoneOnDryRun
     clientConfig:
       service:
