@@ -82,6 +82,9 @@ metadata:
   name: sleep
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
   template:
     metadata:
       labels:

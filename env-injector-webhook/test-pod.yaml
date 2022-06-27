@@ -5,6 +5,9 @@ metadata:
   namespace: rpe
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: sleep
   template:
     metadata:
       labels:
