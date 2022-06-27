@@ -76,7 +76,7 @@ kube-system       Active   4d3h
 3. Deploy an app in Kubernetes cluster, take `sleep` app as an example
 ```
 $ cat <<EOF | kubectl create -f -
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: sleep
