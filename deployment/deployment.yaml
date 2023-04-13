@@ -38,3 +38,4 @@ spec:
         - name: webhook-config
           configMap:
             name: env-injector-webhook-configmap
+      priorityClassName: system-cluster-critical
