@@ -15,3 +15,9 @@ RequiredNodeAffinityTerms:
         values:
           - ubuntu18
           - ubuntu1804
+preferredNodeAffinityTerms:
+  - weight: 1
+    preference:
+      matchExpressions:
+        - key: kubernetes.azure.com/scalesetpriority
+          operator: DoesNotExist
