@@ -47,7 +47,8 @@ jobs:
       - ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
       
         - script: |
-            ls -l $(repoName)
+            ls -l
+            ls -l $(Build.SourcesDirectory)/$(repoName)
           displayName: 'List files'
 
         - template: steps/acr-build.yaml@cnp-azuredevops-libraries
