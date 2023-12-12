@@ -48,6 +48,7 @@ jobs:
           - template: steps/acr-build.yaml@cnp-azuredevops-libraries
             parameters:
               serviceConnection: $(serviceConnection)
+              buildPath: $(Build.SourcesDirectory)
 
       - template: steps/charts/validate.yaml@cnp-azuredevops-libraries
         parameters:
