@@ -38,6 +38,10 @@ variables:
     value: $(chartName)/values.yaml
   - name: testAppImage
     value: hmctspublic.azurecr.io/hmcts/$(Build.Repository.Name)
+  - name: aksResourceGroup
+    value: "cft-sbox-01-rg"
+  - name: aksCluster
+    value: "cft-sbox-01-aks"
 
 jobs:
   - job: Validate
@@ -62,8 +66,8 @@ jobs:
           valuesFile: $(valuesFile)
           serviceConnection: "DCD-CFTAPPS-SBOX"
           registryServiceConnection: "azurerm-prod"
-          aksResourceGroup: "cft-sbox-01-rg"
-          aksCluster: "cft-sbox-01-aks"
+          aksResourceGroup: $(aksResourceGroup)
+          aksCluster: $(aksCluster)
           ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
             additionalHelmArgs: --set image=$(testAppImage):pr-$(System.PullRequest.PullRequestNumber)
 
@@ -85,6 +89,6 @@ jobs:
           chartNamespace: chart-tests
           serviceConnection: "DCD-CFTAPPS-SBOX"
           registryServiceConnection: "azurerm-prod"
-          aksResourceGroup: "cft-sbox-00-rg"
-          aksCluster: "cft-sbox-00-aks"
+          aksResourceGroup: $(aksResourceGroup)
+          aksCluster: $(aksCluster)
 
