@@ -60,8 +60,7 @@ jobs:
             additionalHelmArgs: --set image=$(testAppImage):pr-$(System.PullRequest.PullRequestNumber)
 
   - job: Release
-    # Make sure we are on the master branch with a tag
-    # to trigger this job
+    # Make sure we have a tag to run this job
     condition: >
       and(
           succeeded(),
@@ -76,3 +75,7 @@ jobs:
           chartName: $(chartName)
           chartReleaseName: chart-$(chartName)-ci
           chartNamespace: chart-tests
+          serviceConnection: "DCD-CFTAPPS-SBOX"
+          registryServiceConnection: "azurerm-prod"
+          aksResourceGroup: "cft-sbox-01-rg"
+

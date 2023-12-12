@@ -50,7 +50,7 @@ example values.yaml file (Helm):
 ```yaml
 environment: {}
 dnsOptions: {}
-RequiredNodeAffinityTerms: {}
+requiredNodeAffinityTerms: {}
 preferredNodeAffinityTerms: {}
 tolerations:
   - key: kubernetes.azure.com/scalesetpriority
@@ -193,14 +193,14 @@ To verify that the changes have been applied you can check the output of the pod
 The following example is based on using the deployment above:
 
 ```
-kubectl get pod sleep-<pod hash> -o json 
+kubectl get pod -l app=sleep -o json 
 ```
 
 You should be able to see your additional config listed as part of the pod spec.
 If you have JQ installed you can narrow down the results to what you want to see:
 
 ```
-kubectl get pod sleep-<pod hash> -o json | jq '.spec.dnsOptions'
+kubectl get pod -l app=sleep -o json | jq '.spec.dnsOptions'
 ```
 
 ## Helm chart

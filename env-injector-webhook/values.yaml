@@ -6,7 +6,7 @@ dnsOptions:
   ndots: 3
   # single-request-reopen:
   # use-vc:
-RequiredNodeAffinityTerms: {}
+requiredNodeAffinityTerms: {}
   # - matchExpressions:
   #     - key: agentpool
   #       operator: In

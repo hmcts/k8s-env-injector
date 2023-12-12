@@ -10,7 +10,7 @@ data:
     dnsOptions:
       - name: ndots
         value: 3
-    RequiredNodeAffinityTerms:
+    requiredNodeAffinityTerms:
       - matchExpressions:
           - key: kubernetes.azure.com/mode
             operator: NotIn
