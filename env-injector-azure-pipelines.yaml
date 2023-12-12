@@ -39,9 +39,9 @@ variables:
   - name: testAppImage
     value: hmctspublic.azurecr.io/hmcts/$(Build.Repository.Name)
   - name: aksResourceGroup
-    value: "cft-sbox-01-rg"
+    value: "cft-sbox-00-rg"
   - name: aksCluster
-    value: "cft-sbox-01-aks"
+    value: "cft-sbox-00-aks"
 
 jobs:
   - job: Validate

@@ -1,5 +1,0 @@
-env:
-  - name: CLUSTER_NAME
-    value: aks-test-01
-  - name: SUBSCRIPTION
-    value: subscription-00
