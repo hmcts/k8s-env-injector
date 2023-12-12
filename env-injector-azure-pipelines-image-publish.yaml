@@ -1,0 +1,44 @@
+name: Env-Injector-$(Build.BuildId)_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:r)
+
+trigger:
+  branches:
+    include:
+      - master
+  paths:
+    include:
+      - image
+
+pr: none
+
+resources:
+  repositories:
+    - repository: cnp-azuredevops-libraries
+      type: github
+      name: hmcts/cnp-azuredevops-libraries
+      endpoint: hmcts
+
+variables:
+  - name: agentPool
+    value: ubuntu-latest
+  - name: acrName
+    value: hmctspublic
+  - name: acrResourceGroup
+    value: rpe-acr-prod-rg
+  - name: serviceConnection
+    value: azurerm-prod
+  - name: buildPath
+    value: image
+
+jobs:
+  - job: BuildAndPushImage
+    pool:
+      vmImage: ${{ variables.agentPool }}
+    steps:
+      - checkout: self
+        clean: true
+
+      - template: steps/acr-build.yaml@cnp-azuredevops-libraries
+        parameters:
+          serviceConnection: $(serviceConnection)
+          customImageTag: $(Build.BuildId)_$(Date:yyyyMMdd)
+          buildPath: $(buildPath)

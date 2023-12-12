@@ -1,0 +1,3 @@
+env:
+  - name: CLUSTER_NAME
+    value: aks-test-01
