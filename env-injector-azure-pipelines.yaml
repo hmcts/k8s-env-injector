@@ -1,4 +1,4 @@
-name: Chart_$(Build.Repository.Name)_$(Build.BuildId)_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:r)
+name: k8s-env-injector_chart_$(Build.BuildId)_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:r)
 
 trigger:
   branches:
@@ -82,4 +82,5 @@ jobs:
           serviceConnection: "DCD-CFTAPPS-SBOX"
           registryServiceConnection: "azurerm-prod"
           aksResourceGroup: "cft-sbox-01-rg"
+          aksCluster: "cft-sbox-01-aks"
 

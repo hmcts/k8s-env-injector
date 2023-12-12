@@ -1,4 +1,4 @@
-name: ImageBuild_$(Build.Repository.Name)_$(Build.BuildId)_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:r)
+name: k8s-env-injector_image_$(Build.BuildId)_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:r)
 
 trigger:
   branches:
@@ -28,6 +28,8 @@ variables:
     value: azurerm-prod
   - name: buildPath
     value: image
+  - name: buildTime
+    value: $[format('{0:yyyyMMddHHmmss}', pipeline.startTime)]
 
 jobs:
   - job: BuildAndPushImage
@@ -40,5 +42,5 @@ jobs:
       - template: steps/acr-build.yaml@cnp-azuredevops-libraries
         parameters:
           serviceConnection: $(serviceConnection)
-          customImageTag: $(Build.BuildId)_$(Date:yyyyMMdd)
+          customImageTag: $(Build.BuildId)_$(buildTime)
           buildPath: $(buildPath)
