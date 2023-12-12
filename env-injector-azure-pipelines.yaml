@@ -1,4 +1,5 @@
-name: chart-env-injector-webhook pipeline
+name: Chart_$(Build.Repository.Name)_$(Build.BuildId)_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:r)
+
 trigger:
   branches:
     include:
@@ -26,14 +27,14 @@ variables:
     value: rpe-acr-prod-rg
   - name: serviceConnection
     value: azurerm-prod
-  - name: buildPath
-    value: chart-nodejs/test-image
   - name: repoName
-    value: chart-nodejs
+    value: $(Build.Repository.Name)
+  - name: chartName
+    value: env-injector-webhook
   - name: valuesFile
-    value: $(repoName)/ci-values.yaml
+    value: $(chartName)/values.yaml
   - name: testAppImage
-    value: hmctspublic.azurecr.io/hmcts/chart-nodejs
+    value: hmctspublic.azurecr.io/hmcts/$(Build.Repository.Name)
 
 jobs:
   - job: Validate
@@ -47,12 +48,11 @@ jobs:
           - template: steps/acr-build.yaml@cnp-azuredevops-libraries
             parameters:
               serviceConnection: $(serviceConnection)
-              buildPath: $(buildPath)
 
       - template: steps/charts/validate.yaml@cnp-azuredevops-libraries
         parameters:
-          chartName: env-injector-webhook
-          chartReleaseName: chart-env-injector-webhook-ci
+          chartName: $(chartName)
+          chartReleaseName: chart-$(chartName)-ci
           chartNamespace: chart-tests
           helmInstallTimeout: "500"
           ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
@@ -72,9 +72,6 @@ jobs:
     steps:
       - template: steps/charts/release.yaml@cnp-azuredevops-libraries
         parameters:
-          chartName: env-injector-webhook
-          chartReleaseName: chart-env-injector-webhook-ci
+          chartName: $(chartName)
+          chartReleaseName: chart-$(chartName)-ci
           chartNamespace: chart-tests
-          serviceConnection: "DCD-CFTAPPS-SBOX"
-          aksResourceGroup: "cft-sbox-01-rg"
-          aksCluster: "cft-sbox-01-aks"

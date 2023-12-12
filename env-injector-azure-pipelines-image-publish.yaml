@@ -1,4 +1,4 @@
-name: Env-Injector-$(Build.BuildId)_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:r)
+name: ImageBuild_$(Build.Repository.Name)_$(Build.BuildId)_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:r)
 
 trigger:
   branches:
