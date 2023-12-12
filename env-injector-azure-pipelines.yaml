@@ -28,7 +28,7 @@ variables:
   - name: serviceConnection
     value: azurerm-prod
   - name: repoName
-    value: $(split(variables['Build.Repository.Name'], '/'))[1]
+    value: k8s-env-injector
   - name: chartName
     value: env-injector-webhook
   - name: valuesFile
@@ -45,13 +45,6 @@ jobs:
         clean: true
 
       - ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
-      
-        - script: |
-            ls -l 
-            echo $(repoName)
-            ls -l $(repoName)
-          displayName: 'List files'
-
         - template: steps/acr-build.yaml@cnp-azuredevops-libraries
           parameters:
             serviceConnection: $(serviceConnection)
