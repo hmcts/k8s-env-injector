@@ -45,16 +45,10 @@ jobs:
         clean: true
 
       - ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
-      
-        - script: |
-            ls -l
-            ls -l $(Build.SourcesDirectory)
-          displayName: 'List files'
-
         - template: steps/acr-build.yaml@cnp-azuredevops-libraries
           parameters:
             serviceConnection: $(serviceConnection)
-            buildPath: $(Build.SourcesDirectory)
+            buildPath: $(repoName)
 
       - template: steps/charts/validate.yaml@cnp-azuredevops-libraries
         parameters:
