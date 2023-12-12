@@ -58,8 +58,12 @@ jobs:
           chartName: $(chartName)
           chartReleaseName: chart-$(chartName)-ci
           chartNamespace: chart-tests
-          helmInstallTimeout: "500"
+          helmInstallTimeout: "300"
           valuesFile: $(valuesFile)
+          serviceConnection: "DCD-CFTAPPS-SBOX"
+          registryServiceConnection: "azurerm-prod"
+          aksResourceGroup: "cft-sbox-01-rg"
+          aksCluster: "cft-sbox-01-aks"
           ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
             additionalHelmArgs: --set image=$(testAppImage):pr-$(System.PullRequest.PullRequestNumber)
 

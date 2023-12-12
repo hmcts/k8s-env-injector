@@ -29,7 +29,7 @@ variables:
   - name: buildPath
     value: image
   - name: buildTime
-    value: $[format('{0:yyyyMMddHHmmss}', pipeline.startTime)]
+    value: $[format('{0:yyyyMMdd}', pipeline.startTime)]
 
 jobs:
   - job: BuildAndPushImage
