@@ -3,6 +3,74 @@
 This repo hosts a [MutatingAdmissionWebhook](https://kubernetes.io/docs/admin/admission-controllers/#mutatingadmissionwebhook-beta-in-19) that injects environment variables, dns options and node affinity into pod containers prior to persistence of the object.
 Node affinity is currently limited to RequiredDuringSchedulingIgnoredDuringExecution selector terms.
 
+The image can be used along with several Kubernetes resources to update specific settings on your pods based on a label applied to the namespace of the pod i.e. 
+
+- Apply the label to the namespace and all pods within will have the same additional configuration applied at scheduling time.
+
+The following options are available for configuration (if existing configuration exists then the new configuration you supply will be appended, it does not replace existing configuration).
+
+- Environment Variables
+- DNS Options
+- Required Node Affinity terms
+- Preferred Node Affinity terms
+- Tolerations
+- Topology Spread Constraints
+
+Each configuration type is optional so your configmap or values file will only include those that you want to change.
+
+Example config map:
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: env-injector-webhook-configmap
+data:
+  envconfig.yaml: |
+    tolerations:
+      - key: kubernetes.azure.com/scalesetpriority
+        effect: NoSchedule
+        operator: Equal
+        value: spot
+    topologyConstraints:
+      - maxSkew: 1
+        topologyKey: topology.kubernetes.io/zone
+        whenUnsatisfiable: ScheduleAnyway
+        nodeAffinityPolicy: Honor
+        nodeTaintsPolicy: Honor
+        labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: test-app
+        matchLabelKeys:
+          - pod-template-hash
+```
+
+example values.yaml file (Helm):
+
+```yaml
+environment: {}
+dnsOptions: {}
+RequiredNodeAffinityTerms: {}
+preferredNodeAffinityTerms: {}
+tolerations:
+  - key: kubernetes.azure.com/scalesetpriority
+    effect: NoSchedule
+    operator: Equal
+    value: spot
+topologyConstraints:
+  - maxSkew: 1
+    topologyKey: topology.kubernetes.io/zone
+    whenUnsatisfiable: ScheduleAnyway
+    nodeAffinityPolicy: Honor
+    nodeTaintsPolicy: Honor
+    labelSelector:
+      matchLabels:
+        app.kubernetes.io/name: test-app
+    matchLabelKeys:
+      - pod-template-hash
+
+```
+
 ## Prerequisites
 
 Kubernetes 1.22.0 or above with the `admissionregistration.k8s.io/v1` API enabled. Verify that by the following command:
@@ -17,17 +85,23 @@ admissionregistration.k8s.io/v1
 In addition, the `MutatingAdmissionWebhook` and `ValidatingAdmissionWebhook` admission controllers should be added and listed in the correct order in the admission-control flag of kube-apiserver.
 
 ## Build
+Within this repository is a Dockerfile, this should be used when there are changes made to the Golang code.
 
-
-1. Build and push docker image
+Build and push docker image
    
 ```
-./build
+docker build --tag k8s-env-injector:latest .
+
+docker tag k8s-env-injector <your container repository>/k8s-env-injector:<tag>
+
+docker push <your container repository>/k8s-env-injector:<tag>
+
 ```
 
 ## Deploy
 
-1. Create a signed cert/key pair and store it in a Kubernetes `secret` that will be consumed by env-injector deployment
+Create a signed cert/key pair and store it in a Kubernetes `secret` that will be consumed by env-injector deployment
+
 ```
 ./deployment/webhook-create-signed-cert.sh \
     --service env-injector-webhook-svc \
@@ -35,14 +109,20 @@ In addition, the `MutatingAdmissionWebhook` and `ValidatingAdmissionWebhook` adm
     --namespace default
 ```
 
-2. Patch the `MutatingWebhookConfiguration` by set `caBundle` with correct value from Kubernetes cluster
+> **_NOTE:_** This creates a secret within your namespace so you need to use this namespace for the rest of the deployment steps
+
+Patch the `MutatingWebhookConfiguration` by set `caBundle` with correct value from Kubernetes cluster
+
 ```
 cat deployment/mutatingwebhook.yaml | \
     deployment/webhook-patch-ca-bundle.sh > \
     deployment/mutatingwebhook-ca-bundle.yaml
 ```
 
-3. Deploy resources
+This will update the local `deployment/mutatingwebhook-ca-bundle.yaml` file with a new CA bundle string, make sure to check that it also has the matching namespace file before you deploy.
+
+Deploy resources
+
 ```
 kubectl create -f deployment/configmap.yaml
 kubectl create -f deployment/deployment.yaml
@@ -52,20 +132,30 @@ kubectl create -f deployment/mutatingwebhook-ca-bundle.yaml
 
 ## Verify
 
-1. The environment inject webhook should be running
+The environment inject webhook should be running now in your namespace, you can verify by:
+
 ```
-$ kubectl get pods
+kubectl get pods
 NAME                                                  READY     STATUS    RESTARTS   AGE
 env-injector-webhook-deployment-bbb689d69-882dd   1/1       Running   0          5m
-$ kubectl get deployment
+```
+
+```
+kubectl get deployment
 NAME                                  DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
 env-injector-webhook-deployment   1         1         1            1           5m
 ```
 
-2. Label the default namespace with `env-injector=enabled`
+Add a label to the namespace that you want env-injector to make changes to with: `env-injector=enabled`
+
 ```
-$ kubectl label namespace default hmcts.github.com/envInjector=enabled
-$ kubectl get namespace -L hmcts.github.com/envInjector
+kubectl label namespace default hmcts.github.com/envInjector=enabled
+kubectl get namespace -L hmcts.github.com/envInjector
+```
+
+Output:
+
+```
 NAME              STATUS   AGE    ENVINJECTOR
 default           Active   4d3h   enabled
 kube-node-lease   Active   4d3h   
@@ -73,9 +163,10 @@ kube-public       Active   4d3h
 kube-system       Active   4d3h   
 ```
 
-3. Deploy an app in Kubernetes cluster, take `sleep` app as an example
+Create a test deployment in your namespace, the following is an example that can be used for quick results:
+
 ```
-$ cat <<EOF | kubectl create -f -
+cat <<EOF | kubectl create -f -
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -98,17 +189,27 @@ spec:
 EOF
 ```
 
-4. Verify environment injected by describing the pod
+To verify that the changes have been applied you can check the output of the pod.
+The following example is based on using the deployment above:
+
 ```
-$ kubectl describe pod ...
+kubectl get pod sleep-<pod hash> -o json 
+```
+
+You should be able to see your additional config listed as part of the pod spec.
+If you have JQ installed you can narrow down the results to what you want to see:
+
+```
+kubectl get pod sleep-<pod hash> -o json | jq '.spec.dnsOptions'
 ```
 
 ## Helm chart
 
 A Helm chart is also available, see [env-injector-webhook](charts/env-injector-webhook/Chart.yaml).
 This can be installed in a single step using helm 2 or 3, e.g.
+
 ```
-$ helm upgrade env-injector-webhook env-injector-webhook --install --namespace admin
+$ helm upgrade env-injector-webhook env-injector-webhook --install --namespace <your namespace>
 ```
 
 *Note*: As the pods and service need to have:
