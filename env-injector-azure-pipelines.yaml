@@ -85,6 +85,6 @@ jobs:
           chartNamespace: chart-tests
           serviceConnection: "DCD-CFTAPPS-SBOX"
           registryServiceConnection: "azurerm-prod"
-          aksResourceGroup: "cft-sbox-01-rg"
-          aksCluster: "cft-sbox-01-aks"
+          aksResourceGroup: "cft-sbox-00-rg"
+          aksCluster: "cft-sbox-00-aks"
 
