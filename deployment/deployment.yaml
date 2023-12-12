@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: env-injector
-          image: hmctspublic.azurecr.io/k8s-env-injector:db5r0d
+          image: hmctspublic.azurecr.io/k8s-env-injector:d258d1
           imagePullPolicy: Always
           args:
             - -envCfgFile=/etc/webhook/config/envconfig.yaml
