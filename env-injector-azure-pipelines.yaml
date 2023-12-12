@@ -45,6 +45,11 @@ jobs:
         clean: true
 
       - ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
+      
+        - script: |
+            ls -l $(repoName)
+          displayName: 'List files'
+
         - template: steps/acr-build.yaml@cnp-azuredevops-libraries
           parameters:
             serviceConnection: $(serviceConnection)
