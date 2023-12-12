@@ -220,6 +220,11 @@ This allows the installation/upgrade steps to execute in the right order, but ha
 around the secret and mutating webhook when the chart is deleted. 
 For that reason a pre-upgrade + post-delete helm hook takes care of deleting secret and admission webhook.
 
+## Updates
+If you wish to update or increase the coverage of this webhook you can use the following API Guide for Kubernetes and Golang:
+
+- https://pkg.go.dev/k8s.io/api/core/v1
+
 ## Notes
 
 This repo is based on the excellent tutorial available at: [morvencao/kube-mutating-webhook-tutorial](https://github.com/morvencao/kube-mutating-webhook-tutorial) 

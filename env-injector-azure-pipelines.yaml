@@ -39,7 +39,7 @@ variables:
   - name: valuesFile
     value: $(chartName)/values.yaml
   - name: testAppImage
-    value: hmctspublic.azurecr.io/hmcts/$(Build.Repository.Name)
+    value: hmctspublic.azurecr.io/$(Build.Repository.Name)
   - name: aksResourceGroup
     value: "cft-sbox-00-rg"
   - name: aksCluster
