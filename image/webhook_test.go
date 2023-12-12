@@ -10,6 +10,7 @@ import (
 
 func TestLoadConfig(t *testing.T) {
 	ndotsVal := "3"
+	topologyHonorPolicy := corev1.NodeInclusionPolicyHonor
 	files := []struct {
 		name string
 		env  *Config
@@ -17,12 +18,14 @@ func TestLoadConfig(t *testing.T) {
 		{"test/env_test_1.yaml",
 			&Config{
 				[]corev1.EnvVar{{Name: "CLUSTER_NAME", Value: "aks-test-01", ValueFrom: nil}},
-				nil, nil},
+				nil, nil, nil, nil, nil, // nil = empty tests
+			},
 		},
 		{"test/env_test_2.yaml",
 			&Config{[]corev1.EnvVar{{Name: "CLUSTER_NAME", Value: "aks-test-01", ValueFrom: nil},
 				{Name: "SUBSCRIPTION", Value: "subscription-00", ValueFrom: nil}},
-				nil, nil},
+				nil, nil, nil, nil, nil, // nil = empty tests
+			},
 		},
 		{"test/env_test_3.yaml",
 			&Config{[]corev1.EnvVar{{Name: "CLUSTER_NAME", Value: "aks-test-01", ValueFrom: nil},
@@ -30,7 +33,8 @@ func TestLoadConfig(t *testing.T) {
 				[]corev1.PodDNSConfigOption{{Name: "ndots", Value: &ndotsVal},
 					{Name: "single-request-reopen", Value: nil},
 					{Name: "use-vc", Value: nil}},
-				nil},
+				nil, nil, nil, nil, // nil = empty tests
+			},
 		},
 		{"test/env_test_4.yaml",
 			&Config{[]corev1.EnvVar{{Name: "CLUSTER_NAME", Value: "aks-test-01", ValueFrom: nil},
@@ -38,8 +42,99 @@ func TestLoadConfig(t *testing.T) {
 				[]corev1.PodDNSConfigOption{{Name: "ndots", Value: &ndotsVal},
 					{Name: "single-request-reopen", Value: nil},
 					{Name: "use-vc", Value: nil}},
+				[]corev1.NodeSelectorTerm{{
+					MatchExpressions: []corev1.NodeSelectorRequirement{{
+						Key: "agentpool", Operator: corev1.NodeSelectorOpIn, Values: []string{"ubuntu18", "ubuntu1804"},
+					}},
+				}},
+				nil, nil, nil, // nil = empty tests
+			},
+		},
+		{"test/env_test_5.yaml",
+			&Config{[]corev1.EnvVar{{Name: "CLUSTER_NAME", Value: "aks-test-01", ValueFrom: nil},
+				{Name: "SUBSCRIPTION", Value: "subscription-00", ValueFrom: nil}},
+				[]corev1.PodDNSConfigOption{{Name: "ndots", Value: &ndotsVal},
+					{Name: "single-request-reopen", Value: nil},
+					{Name: "use-vc", Value: nil}},
+				[]corev1.NodeSelectorTerm{{
+					MatchExpressions: []corev1.NodeSelectorRequirement{{
+						Key: "agentpool", Operator: corev1.NodeSelectorOpIn, Values: []string{"ubuntu18", "ubuntu1804"},
+					}},
+				}},
+				[]corev1.PreferredSchedulingTerm{{
+					Weight: 1, 
+					Preference: corev1.NodeSelectorTerm{
+						MatchExpressions: []corev1.NodeSelectorRequirement{{
+							Key: "kubernetes.azure.com/scalesetpriority", Operator: corev1.NodeSelectorOpDoesNotExist,
+						}},
+					},
+				}},
+				nil, nil, // nil = empty tests
+			},
+		},
+		{"test/env_test_6.yaml",
+			&Config{[]corev1.EnvVar{{Name: "CLUSTER_NAME", Value: "aks-test-01", ValueFrom: nil},
+				{Name: "SUBSCRIPTION", Value: "subscription-00", ValueFrom: nil}},
+				[]corev1.PodDNSConfigOption{{Name: "ndots", Value: &ndotsVal},
+					{Name: "single-request-reopen", Value: nil},
+					{Name: "use-vc", Value: nil}},
 				[]corev1.NodeSelectorTerm{{MatchExpressions: []corev1.NodeSelectorRequirement{
-					{Key: "agentpool", Operator: corev1.NodeSelectorOpIn, Values: []string{"ubuntu18", "ubuntu1804"}}}}}},
+					{Key: "agentpool", Operator: corev1.NodeSelectorOpIn, Values: []string{"ubuntu18", "ubuntu1804"}}}}},
+				[]corev1.PreferredSchedulingTerm{{
+					Weight: 1, 
+					Preference: corev1.NodeSelectorTerm{
+						MatchExpressions: []corev1.NodeSelectorRequirement{{
+							Key: "kubernetes.azure.com/scalesetpriority", Operator: corev1.NodeSelectorOpDoesNotExist,
+						}},
+					},
+				}},
+				[]corev1.Toleration{{ 
+					Key: "kubernetes.azure.com/scalesetpriority",
+					Effect: "NoSchedule",
+					Operator: "Equal",
+					Value: "spot",
+				}},
+				nil,
+			},
+		},
+		{"test/env_test_7.yaml",
+			&Config{[]corev1.EnvVar{{Name: "CLUSTER_NAME", Value: "aks-test-01", ValueFrom: nil},
+				{Name: "SUBSCRIPTION", Value: "subscription-00", ValueFrom: nil}},
+				[]corev1.PodDNSConfigOption{{Name: "ndots", Value: &ndotsVal},
+					{Name: "single-request-reopen", Value: nil},
+					{Name: "use-vc", Value: nil}},
+				[]corev1.NodeSelectorTerm{{MatchExpressions: []corev1.NodeSelectorRequirement{
+					{Key: "agentpool", Operator: corev1.NodeSelectorOpIn, Values: []string{"ubuntu18", "ubuntu1804"}}}}},
+				[]corev1.PreferredSchedulingTerm{{
+					Weight: 1, 
+					Preference: corev1.NodeSelectorTerm{
+						MatchExpressions: []corev1.NodeSelectorRequirement{{
+							Key: "kubernetes.azure.com/scalesetpriority", Operator: corev1.NodeSelectorOpDoesNotExist,
+						}},
+					},
+				}},
+				[]corev1.Toleration{{ 
+					Key: "kubernetes.azure.com/scalesetpriority",
+					Effect: "NoSchedule",
+					Operator: "Equal",
+					Value: "spot",
+				}},
+				[]corev1.TopologySpreadConstraint{{
+					MaxSkew:           	1,
+					TopologyKey:       	"topology.kubernetes.io/zone",
+					NodeAffinityPolicy: &topologyHonorPolicy,
+					NodeTaintsPolicy: 	&topologyHonorPolicy,
+					WhenUnsatisfiable: 	"ScheduleAnyway",
+					LabelSelector: &metav1.LabelSelector{
+						MatchLabels: map[string]string{
+							"app.kubernetes.io/name": "test-app",
+						},
+					},
+					MatchLabelKeys: []string{
+						"pod-template-hash",
+					},
+				}},
+			},
 		},
 	}
 
@@ -194,38 +289,190 @@ func TestAddDnsOptions(t *testing.T) {
 
 }
 
-func TestAddNodeAffinity(t *testing.T) {
+func TestAddRequiredNodeAffinity(t *testing.T) {
 	envs := []struct {
 		targetTerms []corev1.NodeSelectorTerm
 		sourceTerms []corev1.NodeSelectorTerm
 		path        string
 		patch       []patchOperation
 	}{
-		{targetTerms: []corev1.NodeSelectorTerm{},
-			sourceTerms: []corev1.NodeSelectorTerm{{MatchExpressions: []corev1.NodeSelectorRequirement{
-				{Key: "agentpool", Operator: corev1.NodeSelectorOpIn, Values: []string{"ubuntu18", "ubuntu1804"}}}}},
+		{
+			targetTerms: []corev1.NodeSelectorTerm{},
+			sourceTerms: []corev1.NodeSelectorTerm{{
+				MatchExpressions: []corev1.NodeSelectorRequirement{{
+					Key: "agentpool", Operator: corev1.NodeSelectorOpIn, Values: []string{"ubuntu18", "ubuntu1804"},
+				}},
+			}},
 			path: "/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution",
-			patch: []patchOperation{{Op: "add", Path: "/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution",
-				Value: []corev1.NodeSelectorTerm{{MatchExpressions: []corev1.NodeSelectorRequirement{
-					{Key: "agentpool", Operator: corev1.NodeSelectorOpIn, Values: []string{"ubuntu18", "ubuntu1804"}}}}}}},
+			patch: []patchOperation{{
+				Op:   "add",
+				Path: "/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution",
+				Value: []corev1.NodeSelectorTerm{{
+					MatchExpressions: []corev1.NodeSelectorRequirement{{
+						Key: "agentpool", Operator: corev1.NodeSelectorOpIn, Values: []string{"ubuntu18", "ubuntu1804"},
+					}},
+				}},
+			}},
 		},
-		{targetTerms: []corev1.NodeSelectorTerm{{MatchExpressions: []corev1.NodeSelectorRequirement{
-			{Key: "zone", Operator: corev1.NodeSelectorOpIn, Values: []string{"uksouth"}}}}},
-			sourceTerms: []corev1.NodeSelectorTerm{{MatchExpressions: []corev1.NodeSelectorRequirement{
-				{Key: "agentpool", Operator: corev1.NodeSelectorOpIn, Values: []string{"ubuntu18", "ubuntu1804"}}}}},
+		{
+			targetTerms: []corev1.NodeSelectorTerm{{
+				MatchExpressions: []corev1.NodeSelectorRequirement{{
+					Key: "zone", Operator: corev1.NodeSelectorOpIn, Values: []string{"uksouth"},
+				}},
+			}},
+			sourceTerms: []corev1.NodeSelectorTerm{{
+				MatchExpressions: []corev1.NodeSelectorRequirement{{
+					Key: "agentpool", Operator: corev1.NodeSelectorOpIn, Values: []string{"ubuntu18", "ubuntu1804"},
+				}},
+			}},
 			path: "/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution",
-			patch: []patchOperation{{Op: "add", Path: "/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution/-",
-				Value: corev1.NodeSelectorTerm{MatchExpressions: []corev1.NodeSelectorRequirement{
-					{Key: "agentpool", Operator: corev1.NodeSelectorOpIn, Values: []string{"ubuntu18", "ubuntu1804"}}}}}},
+			patch: []patchOperation{{
+				Op: "add", Path: "/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution/-",
+				Value: corev1.NodeSelectorTerm{
+					MatchExpressions: []corev1.NodeSelectorRequirement{{
+						Key: "agentpool", Operator: corev1.NodeSelectorOpIn, Values: []string{"ubuntu18", "ubuntu1804"},
+					}},
+				},
+			}},
 		},
 	}
 	for _, e := range envs {
-		patch := addNodeAffinityTerms(e.targetTerms, e.sourceTerms, e.path)
+		patch := addRequiredNodeAffinityTerms(e.targetTerms, e.sourceTerms, e.path)
 		if !cmp.Equal(patch, e.patch) {
-			t.Errorf("addNodeAffinityTerms was incorrect, for %v, got: %v, want: %v.", e.targetTerms, patch, e.patch)
+			t.Errorf("addRequiredNodeAffinityTerms was incorrect, for %v, got: %v, want: %v.", e.targetTerms, patch, e.patch)
 		}
 	}
+}
 
+func TestAddPreferredNodeAffinity(t *testing.T) {
+	envs := []struct {
+		targetTerms []corev1.PreferredSchedulingTerm
+		sourceTerms []corev1.PreferredSchedulingTerm
+		path        string
+		patch       []patchOperation
+	}{
+		{
+			targetTerms: []corev1.PreferredSchedulingTerm{},
+			sourceTerms: []corev1.PreferredSchedulingTerm{{
+				Weight: 1,
+				Preference: corev1.NodeSelectorTerm{
+					MatchExpressions: []corev1.NodeSelectorRequirement{
+						{Key: "disktype", Operator: corev1.NodeSelectorOpIn, Values: []string{"ssd"}},
+					},
+				},
+			}},
+			path: "/spec/affinity/nodeAffinity/preferredDuringSchedulingIgnoredDuringExecution",
+			patch: []patchOperation{{
+				Op:   "add",
+				Path: "/spec/affinity/nodeAffinity/preferredDuringSchedulingIgnoredDuringExecution",
+				Value: []corev1.PreferredSchedulingTerm{{
+					Weight: 1,
+					Preference: corev1.NodeSelectorTerm{
+						MatchExpressions: []corev1.NodeSelectorRequirement{
+							{Key: "disktype", Operator: corev1.NodeSelectorOpIn, Values: []string{"ssd"}},
+						},
+					},
+				}},
+			}},
+		},
+		{
+			targetTerms: []corev1.PreferredSchedulingTerm{{
+				Weight: 1,
+				Preference: corev1.NodeSelectorTerm{
+					MatchExpressions: []corev1.NodeSelectorRequirement{
+						{Key: "zone", Operator: corev1.NodeSelectorOpIn, Values: []string{"uksouth"}},
+					},
+				},
+			}},
+			sourceTerms: []corev1.PreferredSchedulingTerm{{
+				Weight: 1,
+				Preference: corev1.NodeSelectorTerm{
+					MatchExpressions: []corev1.NodeSelectorRequirement{
+						{Key: "disktype", Operator: corev1.NodeSelectorOpIn, Values: []string{"ssd"}},
+					},
+				},
+			}},
+			path: "/spec/affinity/nodeAffinity/preferredDuringSchedulingIgnoredDuringExecution",
+			patch: []patchOperation{{
+				Op:   "add",
+				Path: "/spec/affinity/nodeAffinity/preferredDuringSchedulingIgnoredDuringExecution/-",
+				Value: corev1.PreferredSchedulingTerm{
+					Weight: 1,
+					Preference: corev1.NodeSelectorTerm{
+						MatchExpressions: []corev1.NodeSelectorRequirement{
+							{Key: "disktype", Operator: corev1.NodeSelectorOpIn, Values: []string{"ssd"}},
+						},
+					},
+				},
+			}},
+		},
+	}
+
+	for _, e := range envs {
+		patch := addPreferredNodeAffinityTerms(e.targetTerms, e.sourceTerms, e.path)
+		if !cmp.Equal(patch, e.patch) {
+			t.Errorf("addPreferredNodeAffinityTerms was incorrect, for %v, got: %v, want: %v.", e.targetTerms, patch, e.patch)
+		}
+	}
+}
+
+func TestAddTolerations(t *testing.T) {
+	envs := []struct {
+		targetTolerations []corev1.Toleration
+		sourceTolerations []corev1.Toleration
+		path              string
+		patch             []patchOperation
+	}{
+		{
+			targetTolerations: []corev1.Toleration{},
+			sourceTolerations: []corev1.Toleration{{
+				Key:      "topology.kubernetes.io/region",
+				Operator: corev1.TolerationOpExists,
+				Effect:   corev1.TaintEffectNoSchedule,
+			}},
+			path: "/spec/tolerations",
+			patch: []patchOperation{{
+				Op:    "add",
+				Path:  "/spec/tolerations",
+				Value: []corev1.Toleration{{
+					Key:      "topology.kubernetes.io/region",
+					Operator: corev1.TolerationOpExists,
+					Effect:   corev1.TaintEffectNoSchedule,
+				}},
+			}},
+		},
+		{
+			targetTolerations: []corev1.Toleration{{
+				Key:      "topology.kubernetes.io/region",
+				Operator: corev1.TolerationOpEqual,
+				Value:    "uksouth",
+				Effect:   corev1.TaintEffectPreferNoSchedule,
+			}},
+			sourceTolerations: []corev1.Toleration{{
+				Key:      "kubernetes.io/os",
+				Operator: corev1.TolerationOpEqual,
+				Value:    "Windows",
+				Effect:   corev1.TaintEffectPreferNoSchedule,
+			}},
+			path: "/spec/tolerations",
+			patch: []patchOperation{{
+				Op:    "add",
+				Path:  "/spec/tolerations/-",
+				Value: corev1.Toleration{
+					Key:      "kubernetes.io/os",
+					Operator: corev1.TolerationOpEqual,
+					Value:    "Windows",
+					Effect:   corev1.TaintEffectPreferNoSchedule,
+				},
+			}},
+		},
+	}
+	for _, e := range envs {
+		patch := addTolerations(e.targetTolerations, e.sourceTolerations, e.path)
+		if !cmp.Equal(patch, e.patch) {
+			t.Errorf("addTolerations was incorrect, for %v, got: %v, want: %v.", e.targetTolerations, patch, e.patch)
+		}
+	}
 }
 
 func TestUpdateAnnotations(t *testing.T) {

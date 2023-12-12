@@ -1,8 +1,18 @@
-name: chart-env-injector-webhook pipeline
+name: k8s-env-injector_chart_$(Build.BuildId)_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:r)
+
 trigger:
   branches:
     include:
       - refs/tags/*
+  paths:
+    exclude:
+    - image
+    
+pr:
+  branches:
+    include:
+      - master
+
 resources:
   repositories:
     - repository: cnp-azuredevops-libraries
@@ -11,22 +21,76 @@ resources:
       name: hmcts/cnp-azuredevops-libraries
       endpoint: 'hmcts'
 
+variables:
+  - name: agentPool
+    value: ubuntu-latest
+  - name: acrName
+    value: hmctspublic
+  - name: acrResourceGroup
+    value: rpe-acr-prod-rg
+  - name: serviceConnection
+    value: azurerm-prod
+  - name: repoName
+    value: k8s-env-injector
+  - name: buildPath
+    value: image
+  - name: chartName
+    value: env-injector-webhook
+  - name: valuesFile
+    value: $(chartName)/values.yaml
+  - name: testAppImage
+    value: hmctspublic.azurecr.io/$(Build.Repository.Name)
+  - name: aksResourceGroup
+    value: "cft-sbox-00-rg"
+  - name: aksCluster
+    value: "cft-sbox-00-aks"
+
 jobs:
+  - job: Validate
+    pool:
+      vmImage: ${{ variables.agentPool }}
+    steps:
+      - checkout: self
+        clean: true
+
+      - ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
+        - template: steps/acr-build.yaml@cnp-azuredevops-libraries
+          parameters:
+            serviceConnection: $(serviceConnection)
+            buildPath: $(repoName)/$(buildPath)
+
+      - template: steps/charts/validate.yaml@cnp-azuredevops-libraries
+        parameters:
+          chartName: $(chartName)
+          chartReleaseName: chart-$(chartName)-ci
+          chartNamespace: chart-tests
+          helmInstallTimeout: "300"
+          valuesFile: $(valuesFile)
+          serviceConnection: "DCD-CFTAPPS-SBOX"
+          registryServiceConnection: "azurerm-prod"
+          aksResourceGroup: $(aksResourceGroup)
+          aksCluster: $(aksCluster)
+          ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
+            additionalHelmArgs: --set image=$(testAppImage):pr-$(System.PullRequest.PullRequestNumber)
+
   - job: Release
     # Make sure we have a tag to run this job
-    condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
+    condition: >
+      and(
+          succeeded(),
+          startsWith(variables['Build.SourceBranch'], 'refs/tags/')
+        )
+    dependsOn: Validate
     pool:
       vmImage: 'ubuntu-latest'
     steps:
       - template: steps/charts/release.yaml@cnp-azuredevops-libraries
         parameters:
-          chartName: env-injector-webhook
-          chartReleaseName: chart-env-injector-webhook-ci
+          chartName: $(chartName)
+          chartReleaseName: chart-$(chartName)-ci
           chartNamespace: chart-tests
-          acrName: "hmctspublic"
-          helmDeleteWait: "300"
-          helmInstallWait: "300"
           serviceConnection: "DCD-CFTAPPS-SBOX"
           registryServiceConnection: "azurerm-prod"
-          aksResourceGroup: "cft-sbox-01-rg"
-          aksCluster: "cft-sbox-01-aks"
+          aksResourceGroup: $(aksResourceGroup)
+          aksCluster: $(aksCluster)
+

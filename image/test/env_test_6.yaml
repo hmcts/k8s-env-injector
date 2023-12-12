@@ -8,10 +8,21 @@ dnsOptions:
     value: 3
   - name: single-request-reopen
   - name: use-vc
-nodeAffinityTerms:
+RequiredNodeAffinityTerms:
   - matchExpressions:
       - key: agentpool
         operator: In
         values:
           - ubuntu18
           - ubuntu1804
+preferredNodeAffinityTerms:
+  - weight: 1
+    preference:
+      matchExpressions:
+        - key: kubernetes.azure.com/scalesetpriority
+          operator: DoesNotExist
+tolerations:
+  - key: kubernetes.azure.com/scalesetpriority
+    effect: NoSchedule
+    operator: Equal
+    value: spot
