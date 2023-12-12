@@ -32,6 +32,8 @@ variables:
     value: azurerm-prod
   - name: repoName
     value: k8s-env-injector
+  - name: buildPath
+    value: image
   - name: chartName
     value: env-injector-webhook
   - name: valuesFile
@@ -55,7 +57,7 @@ jobs:
         - template: steps/acr-build.yaml@cnp-azuredevops-libraries
           parameters:
             serviceConnection: $(serviceConnection)
-            buildPath: $(repoName)
+            buildPath: $(repoName)/$(buildPath)
 
       - template: steps/charts/validate.yaml@cnp-azuredevops-libraries
         parameters:
