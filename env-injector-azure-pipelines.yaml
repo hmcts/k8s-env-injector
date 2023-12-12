@@ -4,7 +4,10 @@ trigger:
   branches:
     include:
       - refs/tags/*
-
+  paths:
+    exclude:
+    - image
+    
 pr:
   branches:
     include:
@@ -56,7 +59,7 @@ jobs:
           chartReleaseName: chart-$(chartName)-ci
           chartNamespace: chart-tests
           helmInstallTimeout: "500"
-          valuesFile: $valuesFile
+          valuesFile: $(valuesFile)
           ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
             additionalHelmArgs: --set image=$(testAppImage):pr-$(System.PullRequest.PullRequestNumber)
 
