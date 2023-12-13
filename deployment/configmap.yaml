@@ -5,8 +5,8 @@ metadata:
 data:
   envconfig.yaml: |
     env:
-      - name: CLUSTER_NAME
-        value: aks-test-01
+      - name: INJECTOR_TEST
+        value: enabled
     dnsOptions:
       - name: ndots
         value: 3
@@ -35,6 +35,6 @@ data:
         nodeTaintsPolicy: Honor
         labelSelector:
           matchLabels:
-            app.kubernetes.io/name: test-app
+            app: sleep
         matchLabelKeys:
           - pod-template-hash
