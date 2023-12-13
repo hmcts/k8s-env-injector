@@ -30,3 +30,6 @@ data:
     topologyConstraints:
 {{ tpl (toYaml .Values.topologyConstraints | indent 6) . }}
 {{- end }}
+{{- if .Values.removePodAntiAffinity }}
+    removePodAntiAffinity:  {{ .Values.removePodAntiAffinity }}
+{{- end }}
