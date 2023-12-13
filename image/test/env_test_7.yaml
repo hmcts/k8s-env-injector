@@ -37,3 +37,4 @@ topologyConstraints:
         app.kubernetes.io/name: test-app
     matchLabelKeys:
       - pod-template-hash
+removePodAntiAffinity: true

@@ -18,27 +18,30 @@ func TestLoadConfig(t *testing.T) {
 		{"test/env_test_1.yaml",
 			&Config{
 				[]corev1.EnvVar{{Name: "CLUSTER_NAME", Value: "aks-test-01", ValueFrom: nil}},
-				nil, nil, nil, nil, nil, // nil = empty tests
+				nil, nil, nil, nil, nil, false, // nil = empty tests, false for boolean not defined
 			},
 		},
 		{"test/env_test_2.yaml",
-			&Config{[]corev1.EnvVar{{Name: "CLUSTER_NAME", Value: "aks-test-01", ValueFrom: nil},
-				{Name: "SUBSCRIPTION", Value: "subscription-00", ValueFrom: nil}},
-				nil, nil, nil, nil, nil, // nil = empty tests
+			&Config{
+				[]corev1.EnvVar{{Name: "CLUSTER_NAME", Value: "aks-test-01", ValueFrom: nil},
+					{Name: "SUBSCRIPTION", Value: "subscription-00", ValueFrom: nil}},
+				nil, nil, nil, nil, nil, false, // nil = empty tests, false for boolean not defined
 			},
 		},
 		{"test/env_test_3.yaml",
-			&Config{[]corev1.EnvVar{{Name: "CLUSTER_NAME", Value: "aks-test-01", ValueFrom: nil},
-				{Name: "SUBSCRIPTION", Value: "subscription-00", ValueFrom: nil}},
+			&Config{
+				[]corev1.EnvVar{{Name: "CLUSTER_NAME", Value: "aks-test-01", ValueFrom: nil},
+					{Name: "SUBSCRIPTION", Value: "subscription-00", ValueFrom: nil}},
 				[]corev1.PodDNSConfigOption{{Name: "ndots", Value: &ndotsVal},
 					{Name: "single-request-reopen", Value: nil},
 					{Name: "use-vc", Value: nil}},
-				nil, nil, nil, nil, // nil = empty tests
+				nil, nil, nil, nil, false, // nil = empty tests, false for boolean not defined
 			},
 		},
 		{"test/env_test_4.yaml",
-			&Config{[]corev1.EnvVar{{Name: "CLUSTER_NAME", Value: "aks-test-01", ValueFrom: nil},
-				{Name: "SUBSCRIPTION", Value: "subscription-00", ValueFrom: nil}},
+			&Config{
+				[]corev1.EnvVar{{Name: "CLUSTER_NAME", Value: "aks-test-01", ValueFrom: nil},
+					{Name: "SUBSCRIPTION", Value: "subscription-00", ValueFrom: nil}},
 				[]corev1.PodDNSConfigOption{{Name: "ndots", Value: &ndotsVal},
 					{Name: "single-request-reopen", Value: nil},
 					{Name: "use-vc", Value: nil}},
@@ -47,7 +50,7 @@ func TestLoadConfig(t *testing.T) {
 						Key: "agentpool", Operator: corev1.NodeSelectorOpIn, Values: []string{"ubuntu18", "ubuntu1804"},
 					}},
 				}},
-				nil, nil, nil, // nil = empty tests
+				nil, nil, nil, false, // nil = empty tests, false for boolean not defined
 			},
 		},
 		{"test/env_test_5.yaml",
@@ -62,69 +65,71 @@ func TestLoadConfig(t *testing.T) {
 					}},
 				}},
 				[]corev1.PreferredSchedulingTerm{{
-					Weight: 1, 
+					Weight: 1,
 					Preference: corev1.NodeSelectorTerm{
 						MatchExpressions: []corev1.NodeSelectorRequirement{{
 							Key: "kubernetes.azure.com/scalesetpriority", Operator: corev1.NodeSelectorOpDoesNotExist,
 						}},
 					},
 				}},
-				nil, nil, // nil = empty tests
+				nil, nil, false, // nil = empty tests, false for boolean not defined
 			},
 		},
 		{"test/env_test_6.yaml",
-			&Config{[]corev1.EnvVar{{Name: "CLUSTER_NAME", Value: "aks-test-01", ValueFrom: nil},
-				{Name: "SUBSCRIPTION", Value: "subscription-00", ValueFrom: nil}},
+			&Config{
+				[]corev1.EnvVar{{Name: "CLUSTER_NAME", Value: "aks-test-01", ValueFrom: nil},
+					{Name: "SUBSCRIPTION", Value: "subscription-00", ValueFrom: nil}},
 				[]corev1.PodDNSConfigOption{{Name: "ndots", Value: &ndotsVal},
 					{Name: "single-request-reopen", Value: nil},
 					{Name: "use-vc", Value: nil}},
 				[]corev1.NodeSelectorTerm{{MatchExpressions: []corev1.NodeSelectorRequirement{
 					{Key: "agentpool", Operator: corev1.NodeSelectorOpIn, Values: []string{"ubuntu18", "ubuntu1804"}}}}},
 				[]corev1.PreferredSchedulingTerm{{
-					Weight: 1, 
+					Weight: 1,
 					Preference: corev1.NodeSelectorTerm{
 						MatchExpressions: []corev1.NodeSelectorRequirement{{
 							Key: "kubernetes.azure.com/scalesetpriority", Operator: corev1.NodeSelectorOpDoesNotExist,
 						}},
 					},
 				}},
-				[]corev1.Toleration{{ 
-					Key: "kubernetes.azure.com/scalesetpriority",
-					Effect: "NoSchedule",
+				[]corev1.Toleration{{
+					Key:      "kubernetes.azure.com/scalesetpriority",
+					Effect:   "NoSchedule",
 					Operator: "Equal",
-					Value: "spot",
+					Value:    "spot",
 				}},
-				nil,
+				nil, false, // nil = empty tests, false for boolean not defined
 			},
 		},
 		{"test/env_test_7.yaml",
-			&Config{[]corev1.EnvVar{{Name: "CLUSTER_NAME", Value: "aks-test-01", ValueFrom: nil},
-				{Name: "SUBSCRIPTION", Value: "subscription-00", ValueFrom: nil}},
+			&Config{
+				[]corev1.EnvVar{{Name: "CLUSTER_NAME", Value: "aks-test-01", ValueFrom: nil},
+					{Name: "SUBSCRIPTION", Value: "subscription-00", ValueFrom: nil}},
 				[]corev1.PodDNSConfigOption{{Name: "ndots", Value: &ndotsVal},
 					{Name: "single-request-reopen", Value: nil},
 					{Name: "use-vc", Value: nil}},
 				[]corev1.NodeSelectorTerm{{MatchExpressions: []corev1.NodeSelectorRequirement{
 					{Key: "agentpool", Operator: corev1.NodeSelectorOpIn, Values: []string{"ubuntu18", "ubuntu1804"}}}}},
 				[]corev1.PreferredSchedulingTerm{{
-					Weight: 1, 
+					Weight: 1,
 					Preference: corev1.NodeSelectorTerm{
 						MatchExpressions: []corev1.NodeSelectorRequirement{{
 							Key: "kubernetes.azure.com/scalesetpriority", Operator: corev1.NodeSelectorOpDoesNotExist,
 						}},
 					},
 				}},
-				[]corev1.Toleration{{ 
-					Key: "kubernetes.azure.com/scalesetpriority",
-					Effect: "NoSchedule",
+				[]corev1.Toleration{{
+					Key:      "kubernetes.azure.com/scalesetpriority",
+					Effect:   "NoSchedule",
 					Operator: "Equal",
-					Value: "spot",
+					Value:    "spot",
 				}},
 				[]corev1.TopologySpreadConstraint{{
-					MaxSkew:           	1,
-					TopologyKey:       	"topology.kubernetes.io/zone",
+					MaxSkew:            1,
+					TopologyKey:        "topology.kubernetes.io/zone",
 					NodeAffinityPolicy: &topologyHonorPolicy,
-					NodeTaintsPolicy: 	&topologyHonorPolicy,
-					WhenUnsatisfiable: 	"ScheduleAnyway",
+					NodeTaintsPolicy:   &topologyHonorPolicy,
+					WhenUnsatisfiable:  "ScheduleAnyway",
 					LabelSelector: &metav1.LabelSelector{
 						MatchLabels: map[string]string{
 							"app.kubernetes.io/name": "test-app",
@@ -134,6 +139,7 @@ func TestLoadConfig(t *testing.T) {
 						"pod-template-hash",
 					},
 				}},
+				true,
 			},
 		},
 	}
@@ -225,7 +231,6 @@ func TestAddEnv(t *testing.T) {
 			t.Errorf("addEnv was incorrect, for %v, got: %v, want: %v.", e.targetEnv, patch, e.patch)
 		}
 	}
-
 }
 
 func TestAddDnsOptions(t *testing.T) {
@@ -432,8 +437,8 @@ func TestAddTolerations(t *testing.T) {
 			}},
 			path: "/spec/tolerations",
 			patch: []patchOperation{{
-				Op:    "add",
-				Path:  "/spec/tolerations",
+				Op:   "add",
+				Path: "/spec/tolerations",
 				Value: []corev1.Toleration{{
 					Key:      "topology.kubernetes.io/region",
 					Operator: corev1.TolerationOpExists,
@@ -456,8 +461,8 @@ func TestAddTolerations(t *testing.T) {
 			}},
 			path: "/spec/tolerations",
 			patch: []patchOperation{{
-				Op:    "add",
-				Path:  "/spec/tolerations/-",
+				Op:   "add",
+				Path: "/spec/tolerations/-",
 				Value: corev1.Toleration{
 					Key:      "kubernetes.io/os",
 					Operator: corev1.TolerationOpEqual,
@@ -500,5 +505,24 @@ func TestUpdateAnnotations(t *testing.T) {
 		if !cmp.Equal(patch, a.patch) {
 			t.Errorf("updateAnnotations was incorrect, for %v, got: %v, want: %v.", a.targetAnno, patch, a.patch)
 		}
+	}
+}
+
+// TestRemovePodAntiAffinity tests the removePodAntiAffinity function.
+func TestRemovePodAntiAffinity(t *testing.T) {
+	basePath := "/spec/affinity/podAntiAffinity"
+	expectedPatch := []patchOperation{
+		{
+			Op:   "remove",
+			Path: basePath,
+		},
+	}
+
+	// Call the removePodAntiAffinity function
+	patch := removePodAntiAffinity(basePath)
+
+	// Check if the returned patch matches the expected patch
+	if !cmp.Equal(patch, expectedPatch) {
+		t.Errorf("removePodAntiAffinity was incorrect, for got: %v, want: %v.", expectedPatch, patch)
 	}
 }
