@@ -17,13 +17,6 @@ data:
             values:
               - system
     preferredNodeAffinityTerms:
-      - weight: 50
-        preference:
-          matchExpressions:
-            - key: kubernetes.azure.com/scalesetpriority
-              operator: In
-              values:
-              - spot
       - weight: 1
         preference:
           matchExpressions:
@@ -35,16 +28,6 @@ data:
         operator: Equal
         value: spot
     topologyConstraints:
-      - maxSkew: 1
-        topologyKey: kubernetes.azure.com/agentpool
-        whenUnsatisfiable: DoNotSchedule
-        nodeAffinityPolicy: Honor
-        nodeTaintsPolicy: Honor
-        labelSelector:
-          matchLabels:
-            app: sleep
-        matchLabelKeys:
-          - pod-template-hash
       - maxSkew: 1
         topologyKey: topology.kubernetes.io/zone
         whenUnsatisfiable: ScheduleAnyway
