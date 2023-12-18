@@ -206,7 +206,7 @@ func addRequiredNodeAffinityTerms(target, requiredNodeAffinityTerms []corev1.Nod
 		} else {
 			optExists := false
 			for idx, targetOpt := range target {
-				if cmp.Equal(targetOpt.MatchExpressions, nst.MatchExpressions) {
+				if cmp.Equal(targetOpt, nst) {
 					optExists = true
 					skip = true
 					path = fmt.Sprintf("%s/%d", path, idx)
@@ -245,7 +245,7 @@ func addPreferredNodeAffinityTerms(target, preferredNodeAffinityTerms []corev1.P
 		} else {
 			optExists := false
 			for idx, targetOpt := range target {
-				if (cmp.Equal(targetOpt.Preference, pst.Preference)) && (cmp.Equal(targetOpt.Weight, pst.Weight)) {
+				if cmp.Equal(targetOpt, pst) {
 					optExists = true
 					skip = true
 					path = fmt.Sprintf("%s/%d", path, idx)
@@ -283,7 +283,7 @@ func addTolerations(target, Tolerations []corev1.Toleration, basePath string) (p
 		} else {
 			optExists := false
 			for idx, targetOpt := range target {
-				if (cmp.Equal(targetOpt.Key, tol.Key)) && (cmp.Equal(targetOpt.Value, tol.Value)) {
+				if cmp.Equal(targetOpt, tol) {
 					optExists = true
 					skip = true
 					path = fmt.Sprintf("%s/%d", path, idx)
@@ -321,7 +321,7 @@ func addTopologySpreadConstraints(target, TopologyConstraints []corev1.TopologyS
 		} else {
 			optExists := false
 			for idx, targetOpt := range target {
-				if (cmp.Equal(targetOpt.TopologyKey, tsc.TopologyKey)) && (cmp.Equal(targetOpt.LabelSelector, tsc.LabelSelector)) && (cmp.Equal(targetOpt.MatchLabelKeys, tsc.MatchLabelKeys)) {
+				if cmp.Equal(targetOpt, tsc) {
 					optExists = true
 					skip = true
 					path = fmt.Sprintf("%s/%d", path, idx)
