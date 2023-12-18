@@ -55,7 +55,7 @@ type Config struct {
 	PreferredNodeAffinityTerms []corev1.PreferredSchedulingTerm  `yaml:"preferredNodeAffinityTerms,omitempty"`
 	Tolerations                []corev1.Toleration               `yaml:"tolerations,omitempty"`
 	TopologyConstraints        []corev1.TopologySpreadConstraint `yaml:"topologyConstraints,omitempty"`
-	RemovePodAntiAffinity      bool                              `yaml:"removePodAntiAffinity,omitempty"` // This is the new boolean field
+	RemovePodAntiAffinity      bool                              `yaml:"removePodAntiAffinity,omitempty"`
 }
 
 type patchOperation struct {
