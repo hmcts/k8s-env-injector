@@ -1,4 +1,4 @@
-image: hmctspublic.azurecr.io/hmcts/k8s-env-injector:492855_20231212
+image: hmctspublic.azurecr.io/hmcts/k8s-env-injector:496359_20231218
 replicas: 2
 removePodAntiAffinity: false
 environment: {}
