@@ -4,13 +4,14 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/ghodss/yaml"
 	"github.com/golang/glog"
-	"k8s.io/api/admission/v1"
+	v1 "k8s.io/api/admission/v1"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -48,12 +49,13 @@ type WhSvrParameters struct {
 }
 
 type Config struct {
-	Env                        []corev1.EnvVar                  	`yaml:"env"`
-	DnsOptions                 []corev1.PodDNSConfigOption      	`yaml:"dnsOptions,omitempty"`
-	RequiredNodeAffinityTerms  []corev1.NodeSelectorTerm        	`yaml:"requiredNodeAffinityTerms,omitempty"`
-	PreferredNodeAffinityTerms []corev1.PreferredSchedulingTerm 	`yaml:"preferredNodeAffinityTerms,omitempty"`
-	Tolerations				   []corev1.Toleration	  				`yaml:"tolerations,omitempty"`
-	TopologyConstraints        []corev1.TopologySpreadConstraint	`yaml:"topologyConstraints,omitempty"`
+	Env                        []corev1.EnvVar                   `yaml:"env"`
+	DnsOptions                 []corev1.PodDNSConfigOption       `yaml:"dnsOptions,omitempty"`
+	RequiredNodeAffinityTerms  []corev1.NodeSelectorTerm         `yaml:"requiredNodeAffinityTerms,omitempty"`
+	PreferredNodeAffinityTerms []corev1.PreferredSchedulingTerm  `yaml:"preferredNodeAffinityTerms,omitempty"`
+	Tolerations                []corev1.Toleration               `yaml:"tolerations,omitempty"`
+	TopologyConstraints        []corev1.TopologySpreadConstraint `yaml:"topologyConstraints,omitempty"`
+	RemovePodAntiAffinity      bool                              `yaml:"removePodAntiAffinity,omitempty"`
 }
 
 type patchOperation struct {
@@ -68,7 +70,7 @@ func init() {
 }
 
 func loadConfig(configFile string) (*Config, error) {
-	data, err := ioutil.ReadFile(configFile)
+	data, err := os.ReadFile(configFile)
 	if err != nil {
 		return nil, err
 	}
@@ -266,6 +268,16 @@ func addTopologySpreadConstraints(target, TopologyConstraints []corev1.TopologyS
 	return patch
 }
 
+// removePodAntiAffinity performs the mutation(s) needed to remove podAntiAffinity
+func removePodAntiAffinity(basePath string) (patch []patchOperation) {
+	patch = append(patch, patchOperation{
+		Op:   "remove",
+		Path: basePath,
+	})
+
+	return patch
+}
+
 func updateAnnotation(target map[string]string, annotations map[string]string) (patch []patchOperation) {
 	for k, v := range annotations {
 		if target == nil {
@@ -322,6 +334,12 @@ func createPatch(pod *corev1.Pod, envConfig *Config, annotations map[string]stri
 			patches = append(patches, patchOperation{Op: "add", Path: "/spec/topologySpreadConstraints", Value: []corev1.TopologySpreadConstraint{}})
 		}
 		patches = append(patches, addTopologySpreadConstraints(pod.Spec.TopologySpreadConstraints, envConfig.TopologyConstraints, fmt.Sprintf("/spec/topologySpreadConstraints"))...)
+	}
+	if envConfig.RemovePodAntiAffinity {
+		if pod.Spec.Affinity != nil && pod.Spec.Affinity.PodAntiAffinity != nil {
+			// Remove PodAntiAffinity
+			patches = append(patches, removePodAntiAffinity("/spec/affinity/podAntiAffinity")...)
+		}
 	}
 	if len(envConfig.RequiredNodeAffinityTerms) > 0 {
 		if pod.Spec.Affinity == nil {
@@ -410,7 +428,7 @@ func (whsvr *WebhookServer) mutate(ar *v1.AdmissionReview) *v1.AdmissionResponse
 func (whsvr *WebhookServer) serve(w http.ResponseWriter, r *http.Request) {
 	var body []byte
 	if r.Body != nil {
-		if data, err := ioutil.ReadAll(r.Body); err == nil {
+		if data, err := io.ReadAll(r.Body); err == nil {
 			body = data
 		}
 	}

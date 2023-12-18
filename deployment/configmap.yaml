@@ -7,9 +7,7 @@ data:
     env:
       - name: INJECTOR_TEST
         value: enabled
-    dnsOptions:
-      - name: ndots
-        value: 3
+    removePodAntiAffinity: true
     requiredNodeAffinityTerms:
       - matchExpressions:
           - key: kubernetes.azure.com/mode
@@ -17,6 +15,13 @@ data:
             values:
               - system
     preferredNodeAffinityTerms:
+      - weight: 50
+        preference:
+          matchExpressions:
+            - key: kubernetes.azure.com/scalesetpriority
+              operator: In
+              values:
+                - spot
       - weight: 1
         preference:
           matchExpressions:
@@ -29,12 +34,22 @@ data:
         value: spot
     topologyConstraints:
       - maxSkew: 1
+        topologyKey: kubernetes.azure.com/agentpool
+        whenUnsatisfiable: DoNotSchedule
+        nodeAffinityPolicy: Honor
+        nodeTaintsPolicy: Honor
+        labelSelector:
+          matchLabels:
+            app.kubernetes.io/managed-by: Helm
+        matchLabelKeys:
+          - pod-template-hash
+      - maxSkew: 1
         topologyKey: topology.kubernetes.io/zone
         whenUnsatisfiable: ScheduleAnyway
         nodeAffinityPolicy: Honor
         nodeTaintsPolicy: Honor
         labelSelector:
           matchLabels:
-            app: sleep
+            app.kubernetes.io/managed-by: Helm
         matchLabelKeys:
           - pod-template-hash
