@@ -200,12 +200,16 @@ func TestAddEnv(t *testing.T) {
 		{targetEnv: []corev1.EnvVar{{Name: "ENV_TEST_NAME", Value: "env-test-value", ValueFrom: nil}},
 			sourceEnv: []corev1.EnvVar{{Name: "CLUSTER_NAME", Value: "aks-test-01", ValueFrom: nil}},
 			path:      "/spec/containers/nginx/env",
-			patch:     []patchOperation{{Op: "add", Path: "/spec/containers/nginx/env/-", Value: corev1.EnvVar{Name: "CLUSTER_NAME", Value: "aks-test-01", ValueFrom: nil}}},
+			patch: []patchOperation{
+				{Op: "add", Path: "/spec/containers/nginx/env/-", Value: corev1.EnvVar{Name: "CLUSTER_NAME", Value: "aks-test-01", ValueFrom: nil}},
+			},
 		},
 		{targetEnv: []corev1.EnvVar{},
 			sourceEnv: []corev1.EnvVar{{Name: "CLUSTER_NAME", Value: "aks-test-01", ValueFrom: nil}},
 			path:      "/spec/containers/nginx/env",
-			patch:     []patchOperation{{Op: "add", Path: "/spec/containers/nginx/env", Value: []corev1.EnvVar{{Name: "CLUSTER_NAME", Value: "aks-test-01", ValueFrom: nil}}}},
+			patch: []patchOperation{
+				{Op: "add", Path: "/spec/containers/nginx/env", Value: []corev1.EnvVar{{Name: "CLUSTER_NAME", Value: "aks-test-01", ValueFrom: nil}}},
+			},
 		},
 		{targetEnv: []corev1.EnvVar{{Name: "ENV_TEST_NAME", Value: "env-test-value", ValueFrom: nil}},
 			sourceEnv: []corev1.EnvVar{{Name: "CLUSTER_NAME", Value: "aks-test-01", ValueFrom: nil}, {Name: "SUBSCRIPTION", Value: "subscription-01", ValueFrom: nil}},
@@ -221,6 +225,14 @@ func TestAddEnv(t *testing.T) {
 			patch: []patchOperation{
 				{Op: "add", Path: "/spec/containers/nginx/env", Value: []corev1.EnvVar{{Name: "CLUSTER_NAME", Value: "aks-test-01", ValueFrom: nil}}},
 				{Op: "add", Path: "/spec/containers/nginx/env/-", Value: corev1.EnvVar{Name: "SUBSCRIPTION", Value: "subscription-01", ValueFrom: nil}},
+			},
+		},
+		{targetEnv: []corev1.EnvVar{{Name: "CLUSTER_NAME", Value: "aks-test-01", ValueFrom: nil}, {Name: "SUBSCRIPTION", Value: "subscription-01", ValueFrom: nil}},
+			sourceEnv: []corev1.EnvVar{{Name: "CLUSTER_NAME", Value: "aks-test-01", ValueFrom: nil}, {Name: "SUBSCRIPTION", Value: "subscription-01", ValueFrom: nil}},
+			path:      "/spec/containers/nginx/env",
+			patch: []patchOperation{
+				{Op: "replace", Path: "/spec/containers/nginx/env/0", Value: corev1.EnvVar{Name: "CLUSTER_NAME", Value: "aks-test-01", ValueFrom: nil}},
+				{Op: "replace", Path: "/spec/containers/nginx/env/1", Value: corev1.EnvVar{Name: "SUBSCRIPTION", Value: "subscription-01", ValueFrom: nil}},
 			},
 		},
 	}
@@ -284,6 +296,14 @@ func TestAddDnsOptions(t *testing.T) {
 				{Op: "add", Path: "/spec/dnsConfig/options/-", Value: corev1.PodDNSConfigOption{Name: "use-vc", Value: nil}},
 			},
 		},
+		{targetOptions: []corev1.PodDNSConfigOption{{Name: "ndots", Value: &ndotsVal}, {Name: "use-vc", Value: nil}},
+			sourceOptions: []corev1.PodDNSConfigOption{{Name: "ndots", Value: &ndotsVal}, {Name: "use-vc", Value: nil}},
+			path:          "/spec/dnsConfig/options",
+			patch: []patchOperation{
+				{Op: "replace", Path: "/spec/dnsConfig/options/0", Value: corev1.PodDNSConfigOption{Name: "ndots", Value: &ndotsVal}},
+				{Op: "replace", Path: "/spec/dnsConfig/options/1", Value: corev1.PodDNSConfigOption{Name: "use-vc", Value: nil}},
+			},
+		},
 	}
 	for _, e := range envs {
 		patch := addDnsOptions(e.targetOptions, e.sourceOptions, e.path)
@@ -339,6 +359,20 @@ func TestAddRequiredNodeAffinity(t *testing.T) {
 					}},
 				},
 			}},
+		},
+		{
+			targetTerms: []corev1.NodeSelectorTerm{{
+				MatchExpressions: []corev1.NodeSelectorRequirement{{
+					Key: "agentpool", Operator: corev1.NodeSelectorOpIn, Values: []string{"ubuntu18", "ubuntu1804"},
+				}},
+			}},
+			sourceTerms: []corev1.NodeSelectorTerm{{
+				MatchExpressions: []corev1.NodeSelectorRequirement{{
+					Key: "agentpool", Operator: corev1.NodeSelectorOpIn, Values: []string{"ubuntu18", "ubuntu1804"},
+				}},
+			}},
+			path:  "/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution",
+			patch: []patchOperation{},
 		},
 	}
 	for _, e := range envs {
@@ -411,6 +445,26 @@ func TestAddPreferredNodeAffinity(t *testing.T) {
 				},
 			}},
 		},
+		{
+			targetTerms: []corev1.PreferredSchedulingTerm{{
+				Weight: 1,
+				Preference: corev1.NodeSelectorTerm{
+					MatchExpressions: []corev1.NodeSelectorRequirement{
+						{Key: "disktype", Operator: corev1.NodeSelectorOpIn, Values: []string{"ssd"}},
+					},
+				},
+			}},
+			sourceTerms: []corev1.PreferredSchedulingTerm{{
+				Weight: 1,
+				Preference: corev1.NodeSelectorTerm{
+					MatchExpressions: []corev1.NodeSelectorRequirement{
+						{Key: "disktype", Operator: corev1.NodeSelectorOpIn, Values: []string{"ssd"}},
+					},
+				},
+			}},
+			path:  "/spec/affinity/nodeAffinity/preferredDuringSchedulingIgnoredDuringExecution",
+			patch: []patchOperation{},
+		},
 	}
 
 	for _, e := range envs {
@@ -471,11 +525,168 @@ func TestAddTolerations(t *testing.T) {
 				},
 			}},
 		},
+		{
+			targetTolerations: []corev1.Toleration{{
+				Key:      "kubernetes.io/os",
+				Operator: corev1.TolerationOpEqual,
+				Value:    "Windows",
+				Effect:   corev1.TaintEffectPreferNoSchedule,
+			}},
+			sourceTolerations: []corev1.Toleration{{
+				Key:      "kubernetes.io/os",
+				Operator: corev1.TolerationOpEqual,
+				Value:    "Windows",
+				Effect:   corev1.TaintEffectPreferNoSchedule,
+			}},
+			path:  "/spec/tolerations",
+			patch: []patchOperation{},
+		},
 	}
 	for _, e := range envs {
 		patch := addTolerations(e.targetTolerations, e.sourceTolerations, e.path)
 		if !cmp.Equal(patch, e.patch) {
 			t.Errorf("addTolerations was incorrect, for %v, got: %v, want: %v.", e.targetTolerations, patch, e.patch)
+		}
+	}
+}
+
+func TestAddTopologySpreadConstraints(t *testing.T) {
+	topologyHonorPolicy := corev1.NodeInclusionPolicyHonor
+	envs := []struct {
+		targetTopologySpreadConstraints []corev1.TopologySpreadConstraint
+		sourceTopologySpreadConstraints []corev1.TopologySpreadConstraint
+		path                            string
+		patch                           []patchOperation
+	}{
+		{
+			targetTopologySpreadConstraints: []corev1.TopologySpreadConstraint{},
+			sourceTopologySpreadConstraints: []corev1.TopologySpreadConstraint{{
+				MaxSkew:            1,
+				TopologyKey:        "topology.kubernetes.io/zone",
+				NodeAffinityPolicy: &topologyHonorPolicy,
+				NodeTaintsPolicy:   &topologyHonorPolicy,
+				WhenUnsatisfiable:  "ScheduleAnyway",
+				LabelSelector: &metav1.LabelSelector{
+					MatchLabels: map[string]string{
+						"app.kubernetes.io/name": "test-app",
+					},
+				},
+				MatchLabelKeys: []string{
+					"pod-template-hash",
+				},
+			}},
+			path: "/spec/topologySpreadConstraints",
+			patch: []patchOperation{{
+				Op:   "add",
+				Path: "/spec/topologySpreadConstraints",
+				Value: []corev1.TopologySpreadConstraint{{
+					MaxSkew:            1,
+					TopologyKey:        "topology.kubernetes.io/zone",
+					NodeAffinityPolicy: &topologyHonorPolicy,
+					NodeTaintsPolicy:   &topologyHonorPolicy,
+					WhenUnsatisfiable:  "ScheduleAnyway",
+					LabelSelector: &metav1.LabelSelector{
+						MatchLabels: map[string]string{
+							"app.kubernetes.io/name": "test-app",
+						},
+					},
+					MatchLabelKeys: []string{
+						"pod-template-hash",
+					},
+				}},
+			}},
+		},
+		{
+			targetTopologySpreadConstraints: []corev1.TopologySpreadConstraint{{
+				MaxSkew:            1,
+				TopologyKey:        "kubernetes.azure.com/agentpool",
+				NodeAffinityPolicy: &topologyHonorPolicy,
+				NodeTaintsPolicy:   &topologyHonorPolicy,
+				WhenUnsatisfiable:  "DoNotSchedule",
+				LabelSelector: &metav1.LabelSelector{
+					MatchLabels: map[string]string{
+						"app.kubernetes.io/name": "myFirstTestapp",
+					},
+				},
+				MatchLabelKeys: []string{
+					"pod-template-hash",
+				},
+			}},
+			sourceTopologySpreadConstraints: []corev1.TopologySpreadConstraint{{
+				MaxSkew:            2,
+				TopologyKey:        "topology.kubernetes.io/zone",
+				NodeAffinityPolicy: &topologyHonorPolicy,
+				NodeTaintsPolicy:   &topologyHonorPolicy,
+				WhenUnsatisfiable:  "ScheduleAnyway",
+				LabelSelector: &metav1.LabelSelector{
+					MatchLabels: map[string]string{
+						"app.kubernetes.io/name": "test-app",
+					},
+				},
+				MatchLabelKeys: []string{
+					"pod-template-hash",
+				},
+			}},
+			path: "/spec/topologySpreadConstraints",
+			patch: []patchOperation{{
+				Op:   "add",
+				Path: "/spec/topologySpreadConstraints/-",
+				Value: corev1.TopologySpreadConstraint{
+					MaxSkew:            2,
+					TopologyKey:        "topology.kubernetes.io/zone",
+					NodeAffinityPolicy: &topologyHonorPolicy,
+					NodeTaintsPolicy:   &topologyHonorPolicy,
+					WhenUnsatisfiable:  "ScheduleAnyway",
+					LabelSelector: &metav1.LabelSelector{
+						MatchLabels: map[string]string{
+							"app.kubernetes.io/name": "test-app",
+						},
+					},
+					MatchLabelKeys: []string{
+						"pod-template-hash",
+					},
+				},
+			}},
+		},
+		{
+			targetTopologySpreadConstraints: []corev1.TopologySpreadConstraint{{
+				MaxSkew:            1,
+				TopologyKey:        "topology.kubernetes.io/zone",
+				NodeAffinityPolicy: &topologyHonorPolicy,
+				NodeTaintsPolicy:   &topologyHonorPolicy,
+				WhenUnsatisfiable:  "ScheduleAnyway",
+				LabelSelector: &metav1.LabelSelector{
+					MatchLabels: map[string]string{
+						"app.kubernetes.io/name": "test-app",
+					},
+				},
+				MatchLabelKeys: []string{
+					"pod-template-hash",
+				},
+			}},
+			sourceTopologySpreadConstraints: []corev1.TopologySpreadConstraint{{
+				MaxSkew:            1,
+				TopologyKey:        "topology.kubernetes.io/zone",
+				NodeAffinityPolicy: &topologyHonorPolicy,
+				NodeTaintsPolicy:   &topologyHonorPolicy,
+				WhenUnsatisfiable:  "ScheduleAnyway",
+				LabelSelector: &metav1.LabelSelector{
+					MatchLabels: map[string]string{
+						"app.kubernetes.io/name": "test-app",
+					},
+				},
+				MatchLabelKeys: []string{
+					"pod-template-hash",
+				},
+			}},
+			path:  "/spec/topologySpreadConstraints",
+			patch: []patchOperation{},
+		},
+	}
+	for _, e := range envs {
+		patch := addTopologySpreadConstraints(e.targetTopologySpreadConstraints, e.sourceTopologySpreadConstraints, e.path)
+		if !cmp.Equal(patch, e.patch) {
+			t.Errorf("addTolerations was incorrect, for %v, got: %v, want: %v.", e.targetTopologySpreadConstraints, patch, e.patch)
 		}
 	}
 }

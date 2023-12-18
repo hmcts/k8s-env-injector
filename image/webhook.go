@@ -11,6 +11,7 @@ import (
 
 	"github.com/ghodss/yaml"
 	"github.com/golang/glog"
+	"github.com/google/go-cmp/cmp"
 	v1 "k8s.io/api/admission/v1"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -128,14 +129,26 @@ func addEnv(target, envVars []corev1.EnvVar, basePath string) (patch []patchOper
 	for _, envVar := range envVars {
 		value = envVar
 		path := basePath
+		op := "add"
 		if first {
 			first = false
 			value = []corev1.EnvVar{envVar}
 		} else {
-			path = path + "/-"
+			optExists := false
+			for idx, targetOpt := range target {
+				if targetOpt.Name == envVar.Name {
+					optExists = true
+					op = "replace"
+					path = fmt.Sprintf("%s/%d", path, idx)
+					break
+				}
+			}
+			if !optExists {
+				path = path + "/-"
+			}
 		}
 		patch = append(patch, patchOperation{
-			Op:    "add",
+			Op:    op,
 			Path:  path,
 			Value: value,
 		})
@@ -186,17 +199,33 @@ func addRequiredNodeAffinityTerms(target, requiredNodeAffinityTerms []corev1.Nod
 	for _, nst := range requiredNodeAffinityTerms {
 		value = nst
 		path := basePath
+		skip := false
 		if first {
 			first = false
 			value = []corev1.NodeSelectorTerm{nst}
 		} else {
-			path = path + "/-"
+			optExists := false
+			for idx, targetOpt := range target {
+				if cmp.Equal(targetOpt.MatchExpressions, nst.MatchExpressions) {
+					optExists = true
+					skip = true
+					path = fmt.Sprintf("%s/%d", path, idx)
+					break
+				}
+			}
+			if !optExists {
+				path = path + "/-"
+			}
 		}
-		patch = append(patch, patchOperation{
-			Op:    "add",
-			Path:  path,
-			Value: value,
-		})
+		if !skip {
+			patch = append(patch, patchOperation{
+				Op:    "add",
+				Path:  path,
+				Value: value,
+			})
+		} else {
+			patch = []patchOperation{}
+		}
 	}
 	return patch
 }
@@ -209,17 +238,33 @@ func addPreferredNodeAffinityTerms(target, preferredNodeAffinityTerms []corev1.P
 	for _, pst := range preferredNodeAffinityTerms {
 		value = pst
 		path := basePath
+		skip := false
 		if first {
 			first = false
 			value = []corev1.PreferredSchedulingTerm{pst}
 		} else {
-			path = path + "/-"
+			optExists := false
+			for idx, targetOpt := range target {
+				if (cmp.Equal(targetOpt.Preference, pst.Preference)) && (cmp.Equal(targetOpt.Weight, pst.Weight)) {
+					optExists = true
+					skip = true
+					path = fmt.Sprintf("%s/%d", path, idx)
+					break
+				}
+			}
+			if !optExists {
+				path = path + "/-"
+			}
 		}
-		patch = append(patch, patchOperation{
-			Op:    "add",
-			Path:  path,
-			Value: value,
-		})
+		if !skip {
+			patch = append(patch, patchOperation{
+				Op:    "add",
+				Path:  path,
+				Value: value,
+			})
+		} else {
+			patch = []patchOperation{}
+		}
 	}
 	return patch
 }
@@ -231,17 +276,33 @@ func addTolerations(target, Tolerations []corev1.Toleration, basePath string) (p
 	for _, tol := range Tolerations {
 		value = tol
 		path := basePath
+		skip := false
 		if first {
 			first = false
 			value = []corev1.Toleration{tol}
 		} else {
-			path = path + "/-"
+			optExists := false
+			for idx, targetOpt := range target {
+				if (cmp.Equal(targetOpt.Key, tol.Key)) && (cmp.Equal(targetOpt.Value, tol.Value)) {
+					optExists = true
+					skip = true
+					path = fmt.Sprintf("%s/%d", path, idx)
+					break
+				}
+			}
+			if !optExists {
+				path = path + "/-"
+			}
 		}
-		patch = append(patch, patchOperation{
-			Op:    "add",
-			Path:  path,
-			Value: value,
-		})
+		if !skip {
+			patch = append(patch, patchOperation{
+				Op:    "add",
+				Path:  path,
+				Value: value,
+			})
+		} else {
+			patch = []patchOperation{}
+		}
 	}
 	return patch
 }
@@ -253,17 +314,33 @@ func addTopologySpreadConstraints(target, TopologyConstraints []corev1.TopologyS
 	for _, tsc := range TopologyConstraints {
 		value = tsc
 		path := basePath
+		skip := false
 		if first {
 			first = false
 			value = []corev1.TopologySpreadConstraint{tsc}
 		} else {
-			path = path + "/-"
+			optExists := false
+			for idx, targetOpt := range target {
+				if (cmp.Equal(targetOpt.TopologyKey, tsc.TopologyKey)) && (cmp.Equal(targetOpt.LabelSelector, tsc.LabelSelector)) && (cmp.Equal(targetOpt.MatchLabelKeys, tsc.MatchLabelKeys)) {
+					optExists = true
+					skip = true
+					path = fmt.Sprintf("%s/%d", path, idx)
+					break
+				}
+			}
+			if !optExists {
+				path = path + "/-"
+			}
 		}
-		patch = append(patch, patchOperation{
-			Op:    "add",
-			Path:  path,
-			Value: value,
-		})
+		if !skip {
+			patch = append(patch, patchOperation{
+				Op:    "add",
+				Path:  path,
+				Value: value,
+			})
+		} else {
+			patch = []patchOperation{}
+		}
 	}
 	return patch
 }
