@@ -28,16 +28,20 @@ func main() {
 		glog.Errorf("Error loading configuration: %v", err)
 	}
 
-	pair, err := tls.LoadX509KeyPair(parameters.certFile, parameters.keyFile)
-	if err != nil {
-		glog.Errorf("Error loading key pair: %v", err)
-	}
-
 	whsvr := &WebhookServer{
 		envConfig: envConfig,
 		server: &http.Server{
-			Addr:      fmt.Sprintf(":%v", parameters.port),
-			TLSConfig: &tls.Config{Certificates: []tls.Certificate{pair}},
+			Addr: fmt.Sprintf(":%v", parameters.port),
+			TLSConfig: &tls.Config{
+				GetCertificate: func(clientHello *tls.ClientHelloInfo) (*tls.Certificate, error) {
+					pair, err := tls.LoadX509KeyPair(parameters.certFile, parameters.keyFile)
+					if err != nil {
+						return nil, fmt.Errorf("Error loading key pair: %w", err)
+					}
+
+					return &pair, nil
+				},
+			},
 		},
 	}
 
