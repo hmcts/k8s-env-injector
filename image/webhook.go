@@ -207,7 +207,7 @@ func addRequiredNodeAffinityTerms(target, requiredNodeAffinityTerms []corev1.Nod
 			value = []corev1.NodeSelectorTerm{rna}
 		} else {
 			optExists := false
-			for _, targetOpt := range target {
+			for i, targetOpt := range target {
 				if len(targetOpt.MatchExpressions) > 0 {
 
 					matchExpr := targetOpt.MatchExpressions[idx]
@@ -220,6 +220,7 @@ func addRequiredNodeAffinityTerms(target, requiredNodeAffinityTerms []corev1.Nod
 							optExists = true
 							op = "replace"
 							value = []corev1.NodeSelectorTerm{rna}
+							path = fmt.Sprintf("%s/%d", path, i)
 						} else {
 							optExists = true
 							skip = true
@@ -239,6 +240,7 @@ func addRequiredNodeAffinityTerms(target, requiredNodeAffinityTerms []corev1.Nod
 							optExists = true
 							op = "replace"
 							value = []corev1.NodeSelectorTerm{rna}
+							path = fmt.Sprintf("%s/%d", path, i)
 						} else {
 							optExists = true
 							skip = true
@@ -281,7 +283,7 @@ func addPreferredNodeAffinityTerms(target, preferredNodeAffinityTerms []corev1.P
 			value = []corev1.PreferredSchedulingTerm{pna}
 		} else {
 			optExists := false
-			for _, targetOpt := range target {
+			for i, targetOpt := range target {
 				if len(targetOpt.Preference.MatchExpressions) > 0 {
 
 					matchExpr := targetOpt.Preference.MatchExpressions[idx]
@@ -295,6 +297,7 @@ func addPreferredNodeAffinityTerms(target, preferredNodeAffinityTerms []corev1.P
 							optExists = true
 							op = "replace"
 							value = []corev1.PreferredSchedulingTerm{pna}
+							path = fmt.Sprintf("%s/%d", path, i)
 						} else {
 							optExists = true
 							skip = true
@@ -316,6 +319,7 @@ func addPreferredNodeAffinityTerms(target, preferredNodeAffinityTerms []corev1.P
 							optExists = true
 							op = "replace"
 							value = []corev1.PreferredSchedulingTerm{pna}
+							path = fmt.Sprintf("%s/%d", path, i)
 						} else {
 							optExists = true
 							skip = true
@@ -357,7 +361,7 @@ func addTolerations(target, Tolerations []corev1.Toleration, basePath string) (p
 			value = []corev1.Toleration{tol}
 		} else {
 			optExists := false
-			for _, targetOpt := range target {
+			for i, targetOpt := range target {
 				keyEqual := cmp.Equal(targetOpt.Key, tol.Key)
 				if keyEqual {
 					operatorEqual := cmp.Equal(targetOpt.Operator, tol.Operator)
@@ -368,6 +372,7 @@ func addTolerations(target, Tolerations []corev1.Toleration, basePath string) (p
 						optExists = true
 						op = "replace"
 						value = []corev1.Toleration{tol}
+						path = fmt.Sprintf("%s/%d", path, i)
 					} else {
 						optExists = true
 						skip = true
@@ -408,7 +413,7 @@ func addTopologySpreadConstraints(target, TopologyConstraints []corev1.TopologyS
 			value = []corev1.TopologySpreadConstraint{tsc}
 		} else {
 			optExists := false
-			for _, targetOpt := range target {
+			for i, targetOpt := range target {
 
 				keyEqual := cmp.Equal(targetOpt.TopologyKey, tsc.TopologyKey)
 				if keyEqual {
@@ -423,6 +428,7 @@ func addTopologySpreadConstraints(target, TopologyConstraints []corev1.TopologyS
 						optExists = true
 						op = "replace"
 						value = []corev1.TopologySpreadConstraint{tsc}
+						path = fmt.Sprintf("%s/%d", path, i)
 					} else {
 						optExists = true
 						skip = true

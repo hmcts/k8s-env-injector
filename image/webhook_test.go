@@ -427,6 +427,102 @@ func TestAddRequiredNodeAffinity(t *testing.T) {
 			path:  "/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution",
 			patch: []patchOperation{},
 		},
+		{
+			targetTerms: []corev1.NodeSelectorTerm{{
+				MatchExpressions: []corev1.NodeSelectorRequirement{{
+					Key: "agentpool", Operator: corev1.NodeSelectorOpIn, Values: []string{"ubuntu18", "ubuntu1804"},
+				}},
+			}},
+			sourceTerms: []corev1.NodeSelectorTerm{{
+				MatchExpressions: []corev1.NodeSelectorRequirement{{
+					Key: "agentpool", Operator: corev1.NodeSelectorOpIn, Values: []string{"ubuntu20", "ubuntu1804"},
+				}},
+			}},
+			path: "/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution",
+			patch: []patchOperation{{
+				Op:   "replace",
+				Path: "/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution/0",
+				Value: []corev1.NodeSelectorTerm{{
+					MatchExpressions: []corev1.NodeSelectorRequirement{{
+						Key: "agentpool", Operator: corev1.NodeSelectorOpIn, Values: []string{"ubuntu20", "ubuntu1804"},
+					}},
+				}},
+			}},
+		},
+		{
+			targetTerms: []corev1.NodeSelectorTerm{{
+				MatchFields: []corev1.NodeSelectorRequirement{{
+					Key: "agentpool", Operator: corev1.NodeSelectorOpIn, Values: []string{"ubuntu18", "ubuntu1804"},
+				}},
+			}},
+			sourceTerms: []corev1.NodeSelectorTerm{{
+				MatchFields: []corev1.NodeSelectorRequirement{{
+					Key: "agentpool", Operator: corev1.NodeSelectorOpIn, Values: []string{"ubuntu18", "ubuntu2004"},
+				}},
+			}},
+			path: "/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution",
+			patch: []patchOperation{{
+				Op:   "replace",
+				Path: "/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution/0",
+				Value: []corev1.NodeSelectorTerm{{
+					MatchFields: []corev1.NodeSelectorRequirement{{
+						Key: "agentpool", Operator: corev1.NodeSelectorOpIn, Values: []string{"ubuntu18", "ubuntu2004"},
+					}},
+				}},
+			}},
+		},
+		{
+			targetTerms: []corev1.NodeSelectorTerm{{
+				MatchFields: []corev1.NodeSelectorRequirement{{
+					Key: "zone", Operator: corev1.NodeSelectorOpIn, Values: []string{"A", "B"},
+				}},
+			}, {
+				MatchFields: []corev1.NodeSelectorRequirement{{
+					Key: "agentpool", Operator: corev1.NodeSelectorOpIn, Values: []string{"ubuntu18", "ubuntu1804"},
+				}},
+			}},
+			sourceTerms: []corev1.NodeSelectorTerm{{
+				MatchFields: []corev1.NodeSelectorRequirement{{
+					Key: "agentpool", Operator: corev1.NodeSelectorOpIn, Values: []string{"ubuntu18", "ubuntu2004"},
+				}},
+			}},
+			path: "/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution",
+			patch: []patchOperation{{
+				Op:   "replace",
+				Path: "/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution/1",
+				Value: []corev1.NodeSelectorTerm{{
+					MatchFields: []corev1.NodeSelectorRequirement{{
+						Key: "agentpool", Operator: corev1.NodeSelectorOpIn, Values: []string{"ubuntu18", "ubuntu2004"},
+					}},
+				}},
+			}},
+		},
+		{
+			targetTerms: []corev1.NodeSelectorTerm{{
+				MatchFields: []corev1.NodeSelectorRequirement{{
+					Key: "zone", Operator: corev1.NodeSelectorOpIn, Values: []string{"A", "B"},
+				}},
+			}, {
+				MatchFields: []corev1.NodeSelectorRequirement{{
+					Key: "agentpool", Operator: corev1.NodeSelectorOpIn, Values: []string{"ubuntu18", "ubuntu1804"},
+				}},
+			}},
+			sourceTerms: []corev1.NodeSelectorTerm{{
+				MatchFields: []corev1.NodeSelectorRequirement{{
+					Key: "zone", Operator: corev1.NodeSelectorOpIn, Values: []string{"A", "B", "C"},
+				}},
+			}},
+			path: "/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution",
+			patch: []patchOperation{{
+				Op:   "replace",
+				Path: "/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution/0",
+				Value: []corev1.NodeSelectorTerm{{
+					MatchFields: []corev1.NodeSelectorRequirement{{
+						Key: "zone", Operator: corev1.NodeSelectorOpIn, Values: []string{"A", "B", "C"},
+					}},
+				}},
+			}},
+		},
 	}
 	for _, e := range envs {
 		patch := addRequiredNodeAffinityTerms(e.targetTerms, e.sourceTerms, e.path)
@@ -593,6 +689,75 @@ func TestAddPreferredNodeAffinity(t *testing.T) {
 			path:  "/spec/affinity/nodeAffinity/preferredDuringSchedulingIgnoredDuringExecution",
 			patch: []patchOperation{},
 		},
+		{
+			targetTerms: []corev1.PreferredSchedulingTerm{{
+				Weight: 1,
+				Preference: corev1.NodeSelectorTerm{
+					MatchFields: []corev1.NodeSelectorRequirement{
+						{Key: "disktype", Operator: corev1.NodeSelectorOpIn, Values: []string{"ssd"}},
+					},
+				},
+			}},
+			sourceTerms: []corev1.PreferredSchedulingTerm{{
+				Weight: 1,
+				Preference: corev1.NodeSelectorTerm{
+					MatchFields: []corev1.NodeSelectorRequirement{
+						{Key: "disktype", Operator: corev1.NodeSelectorOpIn, Values: []string{"hdd"}},
+					},
+				},
+			}},
+			path: "/spec/affinity/nodeAffinity/preferredDuringSchedulingIgnoredDuringExecution",
+			patch: []patchOperation{{
+				Op:   "replace",
+				Path: "/spec/affinity/nodeAffinity/preferredDuringSchedulingIgnoredDuringExecution/0",
+				Value: []corev1.PreferredSchedulingTerm{{
+					Weight: 1,
+					Preference: corev1.NodeSelectorTerm{
+						MatchFields: []corev1.NodeSelectorRequirement{
+							{Key: "disktype", Operator: corev1.NodeSelectorOpIn, Values: []string{"hdd"}},
+						},
+					},
+				}},
+			}},
+		},
+		{
+			targetTerms: []corev1.PreferredSchedulingTerm{{
+				Weight: 1,
+				Preference: corev1.NodeSelectorTerm{
+					MatchFields: []corev1.NodeSelectorRequirement{
+						{Key: "zone", Operator: corev1.NodeSelectorOpIn, Values: []string{"uksouth"}},
+					},
+				},
+			}, {
+				Weight: 1,
+				Preference: corev1.NodeSelectorTerm{
+					MatchFields: []corev1.NodeSelectorRequirement{
+						{Key: "disktype", Operator: corev1.NodeSelectorOpIn, Values: []string{"ssd"}},
+					},
+				},
+			}},
+			sourceTerms: []corev1.PreferredSchedulingTerm{{
+				Weight: 1,
+				Preference: corev1.NodeSelectorTerm{
+					MatchFields: []corev1.NodeSelectorRequirement{
+						{Key: "disktype", Operator: corev1.NodeSelectorOpIn, Values: []string{"hdd"}},
+					},
+				},
+			}},
+			path: "/spec/affinity/nodeAffinity/preferredDuringSchedulingIgnoredDuringExecution",
+			patch: []patchOperation{{
+				Op:   "replace",
+				Path: "/spec/affinity/nodeAffinity/preferredDuringSchedulingIgnoredDuringExecution/1",
+				Value: []corev1.PreferredSchedulingTerm{{
+					Weight: 1,
+					Preference: corev1.NodeSelectorTerm{
+						MatchFields: []corev1.NodeSelectorRequirement{
+							{Key: "disktype", Operator: corev1.NodeSelectorOpIn, Values: []string{"hdd"}},
+						},
+					},
+				}},
+			}},
+		},
 	}
 
 	for _, e := range envs {
@@ -669,6 +834,60 @@ func TestAddTolerations(t *testing.T) {
 			path:  "/spec/tolerations",
 			patch: []patchOperation{},
 		},
+		{
+			targetTolerations: []corev1.Toleration{{
+				Key:      "kubernetes.io/os",
+				Operator: corev1.TolerationOpEqual,
+				Value:    "Windows",
+				Effect:   corev1.TaintEffectPreferNoSchedule,
+			}},
+			sourceTolerations: []corev1.Toleration{{
+				Key:      "kubernetes.io/os",
+				Operator: corev1.TolerationOpEqual,
+				Value:    "Linux",
+				Effect:   corev1.TaintEffectPreferNoSchedule,
+			}},
+			path: "/spec/tolerations",
+			patch: []patchOperation{{
+				Op:   "replace",
+				Path: "/spec/tolerations/0",
+				Value: []corev1.Toleration{{
+					Key:      "kubernetes.io/os",
+					Operator: corev1.TolerationOpEqual,
+					Value:    "Linux",
+					Effect:   corev1.TaintEffectPreferNoSchedule,
+				}},
+			}},
+		},
+		{
+			targetTolerations: []corev1.Toleration{{
+				Key:      "topology.kubernetes.io/region",
+				Operator: corev1.TolerationOpExists,
+				Effect:   corev1.TaintEffectNoSchedule,
+			}, {
+				Key:      "kubernetes.io/os",
+				Operator: corev1.TolerationOpEqual,
+				Value:    "Windows",
+				Effect:   corev1.TaintEffectPreferNoSchedule,
+			}},
+			sourceTolerations: []corev1.Toleration{{
+				Key:      "kubernetes.io/os",
+				Operator: corev1.TolerationOpEqual,
+				Value:    "Linux",
+				Effect:   corev1.TaintEffectPreferNoSchedule,
+			}},
+			path: "/spec/tolerations",
+			patch: []patchOperation{{
+				Op:   "replace",
+				Path: "/spec/tolerations/1",
+				Value: []corev1.Toleration{{
+					Key:      "kubernetes.io/os",
+					Operator: corev1.TolerationOpEqual,
+					Value:    "Linux",
+					Effect:   corev1.TaintEffectPreferNoSchedule,
+				}},
+			}},
+		},
 	}
 	for _, e := range envs {
 		patch := addTolerations(e.targetTolerations, e.sourceTolerations, e.path)
@@ -691,17 +910,11 @@ func TestAddTopologySpreadConstraints(t *testing.T) {
 			sourceTopologySpreadConstraints: []corev1.TopologySpreadConstraint{{
 				MaxSkew:            1,
 				TopologyKey:        "topology.kubernetes.io/zone",
+				WhenUnsatisfiable:  "ScheduleAnyway",
+				LabelSelector:      &metav1.LabelSelector{MatchLabels: map[string]string{"app.kubernetes.io/name": "test-app"}},
 				NodeAffinityPolicy: &topologyHonorPolicy,
 				NodeTaintsPolicy:   &topologyHonorPolicy,
-				WhenUnsatisfiable:  "ScheduleAnyway",
-				LabelSelector: &metav1.LabelSelector{
-					MatchLabels: map[string]string{
-						"app.kubernetes.io/name": "test-app",
-					},
-				},
-				MatchLabelKeys: []string{
-					"pod-template-hash",
-				},
+				MatchLabelKeys:     []string{"pod-template-hash"},
 			}},
 			path: "/spec/topologySpreadConstraints",
 			patch: []patchOperation{{
@@ -710,17 +923,11 @@ func TestAddTopologySpreadConstraints(t *testing.T) {
 				Value: []corev1.TopologySpreadConstraint{{
 					MaxSkew:            1,
 					TopologyKey:        "topology.kubernetes.io/zone",
+					WhenUnsatisfiable:  "ScheduleAnyway",
+					LabelSelector:      &metav1.LabelSelector{MatchLabels: map[string]string{"app.kubernetes.io/name": "test-app"}},
 					NodeAffinityPolicy: &topologyHonorPolicy,
 					NodeTaintsPolicy:   &topologyHonorPolicy,
-					WhenUnsatisfiable:  "ScheduleAnyway",
-					LabelSelector: &metav1.LabelSelector{
-						MatchLabels: map[string]string{
-							"app.kubernetes.io/name": "test-app",
-						},
-					},
-					MatchLabelKeys: []string{
-						"pod-template-hash",
-					},
+					MatchLabelKeys:     []string{"pod-template-hash"},
 				}},
 			}},
 		},
@@ -728,32 +935,20 @@ func TestAddTopologySpreadConstraints(t *testing.T) {
 			targetTopologySpreadConstraints: []corev1.TopologySpreadConstraint{{
 				MaxSkew:            1,
 				TopologyKey:        "kubernetes.azure.com/agentpool",
+				WhenUnsatisfiable:  "DoNotSchedule",
+				LabelSelector:      &metav1.LabelSelector{MatchLabels: map[string]string{"app.kubernetes.io/name": "myFirstTestapp"}},
 				NodeAffinityPolicy: &topologyHonorPolicy,
 				NodeTaintsPolicy:   &topologyHonorPolicy,
-				WhenUnsatisfiable:  "DoNotSchedule",
-				LabelSelector: &metav1.LabelSelector{
-					MatchLabels: map[string]string{
-						"app.kubernetes.io/name": "myFirstTestapp",
-					},
-				},
-				MatchLabelKeys: []string{
-					"pod-template-hash",
-				},
+				MatchLabelKeys:     []string{"pod-template-hash"},
 			}},
 			sourceTopologySpreadConstraints: []corev1.TopologySpreadConstraint{{
 				MaxSkew:            2,
 				TopologyKey:        "topology.kubernetes.io/zone",
+				WhenUnsatisfiable:  "ScheduleAnyway",
+				LabelSelector:      &metav1.LabelSelector{MatchLabels: map[string]string{"app.kubernetes.io/name": "test-app"}},
 				NodeAffinityPolicy: &topologyHonorPolicy,
 				NodeTaintsPolicy:   &topologyHonorPolicy,
-				WhenUnsatisfiable:  "ScheduleAnyway",
-				LabelSelector: &metav1.LabelSelector{
-					MatchLabels: map[string]string{
-						"app.kubernetes.io/name": "test-app",
-					},
-				},
-				MatchLabelKeys: []string{
-					"pod-template-hash",
-				},
+				MatchLabelKeys:     []string{"pod-template-hash"},
 			}},
 			path: "/spec/topologySpreadConstraints",
 			patch: []patchOperation{{
@@ -762,17 +957,11 @@ func TestAddTopologySpreadConstraints(t *testing.T) {
 				Value: corev1.TopologySpreadConstraint{
 					MaxSkew:            2,
 					TopologyKey:        "topology.kubernetes.io/zone",
+					WhenUnsatisfiable:  "ScheduleAnyway",
+					LabelSelector:      &metav1.LabelSelector{MatchLabels: map[string]string{"app.kubernetes.io/name": "test-app"}},
 					NodeAffinityPolicy: &topologyHonorPolicy,
 					NodeTaintsPolicy:   &topologyHonorPolicy,
-					WhenUnsatisfiable:  "ScheduleAnyway",
-					LabelSelector: &metav1.LabelSelector{
-						MatchLabels: map[string]string{
-							"app.kubernetes.io/name": "test-app",
-						},
-					},
-					MatchLabelKeys: []string{
-						"pod-template-hash",
-					},
+					MatchLabelKeys:     []string{"pod-template-hash"},
 				},
 			}},
 		},
@@ -780,32 +969,20 @@ func TestAddTopologySpreadConstraints(t *testing.T) {
 			targetTopologySpreadConstraints: []corev1.TopologySpreadConstraint{{
 				MaxSkew:            1,
 				TopologyKey:        "topology.kubernetes.io/zone",
+				WhenUnsatisfiable:  "ScheduleAnyway",
+				LabelSelector:      &metav1.LabelSelector{MatchLabels: map[string]string{"app.kubernetes.io/name": "test-app"}},
 				NodeAffinityPolicy: &topologyHonorPolicy,
 				NodeTaintsPolicy:   &topologyHonorPolicy,
-				WhenUnsatisfiable:  "ScheduleAnyway",
-				LabelSelector: &metav1.LabelSelector{
-					MatchLabels: map[string]string{
-						"app.kubernetes.io/name": "test-app",
-					},
-				},
-				MatchLabelKeys: []string{
-					"pod-template-hash",
-				},
+				MatchLabelKeys:     []string{"pod-template-hash"},
 			}},
 			sourceTopologySpreadConstraints: []corev1.TopologySpreadConstraint{{
 				MaxSkew:            1,
 				TopologyKey:        "topology.kubernetes.io/zone",
+				WhenUnsatisfiable:  "ScheduleAnyway",
+				LabelSelector:      &metav1.LabelSelector{MatchLabels: map[string]string{"app.kubernetes.io/name": "test-app"}},
 				NodeAffinityPolicy: &topologyHonorPolicy,
 				NodeTaintsPolicy:   &topologyHonorPolicy,
-				WhenUnsatisfiable:  "ScheduleAnyway",
-				LabelSelector: &metav1.LabelSelector{
-					MatchLabels: map[string]string{
-						"app.kubernetes.io/name": "test-app",
-					},
-				},
-				MatchLabelKeys: []string{
-					"pod-template-hash",
-				},
+				MatchLabelKeys:     []string{"pod-template-hash"},
 			}},
 			path:  "/spec/topologySpreadConstraints",
 			patch: []patchOperation{},
@@ -814,51 +991,75 @@ func TestAddTopologySpreadConstraints(t *testing.T) {
 			targetTopologySpreadConstraints: []corev1.TopologySpreadConstraint{{
 				MaxSkew:            1,
 				TopologyKey:        "topology.kubernetes.io/zone",
+				WhenUnsatisfiable:  "ScheduleAnyway",
+				LabelSelector:      &metav1.LabelSelector{MatchLabels: map[string]string{"app.kubernetes.io/name": "test-app"}},
 				NodeAffinityPolicy: &topologyHonorPolicy,
 				NodeTaintsPolicy:   &topologyHonorPolicy,
-				WhenUnsatisfiable:  "ScheduleAnyway",
-				LabelSelector: &metav1.LabelSelector{
-					MatchLabels: map[string]string{
-						"app.kubernetes.io/name": "test-app",
-					},
-				},
-				MatchLabelKeys: []string{
-					"pod-template-hash",
-				},
+				MatchLabelKeys:     []string{"pod-template-hash"},
 			}},
 			sourceTopologySpreadConstraints: []corev1.TopologySpreadConstraint{{
 				MaxSkew:            2,
 				TopologyKey:        "topology.kubernetes.io/zone",
+				WhenUnsatisfiable:  "ScheduleAnyway",
+				LabelSelector:      &metav1.LabelSelector{MatchLabels: map[string]string{"app.kubernetes.io/name": "test"}},
 				NodeAffinityPolicy: &topologyHonorPolicy,
 				NodeTaintsPolicy:   &topologyHonorPolicy,
-				WhenUnsatisfiable:  "ScheduleAnyway",
-				LabelSelector: &metav1.LabelSelector{
-					MatchLabels: map[string]string{
-						"app.kubernetes.io/name": "test",
-					},
-				},
-				MatchLabelKeys: []string{
-					"pod-template-hash",
-				},
+				MatchLabelKeys:     []string{"pod-template-hash"},
 			}},
 			path: "/spec/topologySpreadConstraints",
 			patch: []patchOperation{{
 				Op:   "replace",
-				Path: "/spec/topologySpreadConstraints",
+				Path: "/spec/topologySpreadConstraints/0",
 				Value: []corev1.TopologySpreadConstraint{{
 					MaxSkew:            2,
 					TopologyKey:        "topology.kubernetes.io/zone",
+					WhenUnsatisfiable:  "ScheduleAnyway",
+					LabelSelector:      &metav1.LabelSelector{MatchLabels: map[string]string{"app.kubernetes.io/name": "test"}},
 					NodeAffinityPolicy: &topologyHonorPolicy,
 					NodeTaintsPolicy:   &topologyHonorPolicy,
+					MatchLabelKeys:     []string{"pod-template-hash"},
+				}},
+			}},
+		},
+		{
+			targetTopologySpreadConstraints: []corev1.TopologySpreadConstraint{{
+				MaxSkew:            1,
+				TopologyKey:        "kubernetes.azure.com/agentpool",
+				WhenUnsatisfiable:  "DoNotSchedule",
+				LabelSelector:      &metav1.LabelSelector{MatchLabels: map[string]string{"app.kubernetes.io/name": "myFirstTestapp"}},
+				NodeAffinityPolicy: &topologyHonorPolicy,
+				NodeTaintsPolicy:   &topologyHonorPolicy,
+				MatchLabelKeys:     []string{"pod-template-hash"},
+			}, {
+				MaxSkew:            1,
+				TopologyKey:        "topology.kubernetes.io/zone",
+				WhenUnsatisfiable:  "ScheduleAnyway",
+				LabelSelector:      &metav1.LabelSelector{MatchLabels: map[string]string{"app.kubernetes.io/name": "test-app"}},
+				NodeAffinityPolicy: &topologyHonorPolicy,
+				NodeTaintsPolicy:   &topologyHonorPolicy,
+				MatchLabelKeys:     []string{"pod-template-hash"},
+			}},
+			sourceTopologySpreadConstraints: []corev1.TopologySpreadConstraint{{
+				MaxSkew:            2,
+				TopologyKey:        "topology.kubernetes.io/zone",
+				WhenUnsatisfiable:  "ScheduleAnyway",
+				LabelSelector:      &metav1.LabelSelector{MatchLabels: map[string]string{"app.kubernetes.io/name": "test"}},
+				NodeAffinityPolicy: &topologyHonorPolicy,
+				NodeTaintsPolicy:   &topologyHonorPolicy,
+				MatchLabelKeys:     []string{"pod-template"},
+			}},
+			path: "/spec/topologySpreadConstraints",
+			patch: []patchOperation{{
+				Op:   "replace",
+				Path: "/spec/topologySpreadConstraints/1",
+				Value: []corev1.TopologySpreadConstraint{{
+					MaxSkew:            2,
+					TopologyKey:        "topology.kubernetes.io/zone",
 					WhenUnsatisfiable:  "ScheduleAnyway",
-					LabelSelector: &metav1.LabelSelector{
-						MatchLabels: map[string]string{
-							"app.kubernetes.io/name": "test",
-						},
-					},
-					MatchLabelKeys: []string{
-						"pod-template-hash",
-					},
+					LabelSelector:      &metav1.LabelSelector{MatchLabels: map[string]string{"app.kubernetes.io/name": "test"}},
+					NodeAffinityPolicy: &topologyHonorPolicy,
+					NodeTaintsPolicy:   &topologyHonorPolicy,
+					MatchLabelKeys:     []string{"pod-template"},
 				}},
 			}},
 		},
