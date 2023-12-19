@@ -219,7 +219,6 @@ func addRequiredNodeAffinityTerms(target, requiredNodeAffinityTerms []corev1.Nod
 						if !operatorEqual || !valuesEqual {
 							optExists = true
 							op = "replace"
-							value = []corev1.NodeSelectorTerm{rna}
 							path = fmt.Sprintf("%s/%d", path, i)
 						} else {
 							optExists = true
@@ -239,7 +238,6 @@ func addRequiredNodeAffinityTerms(target, requiredNodeAffinityTerms []corev1.Nod
 						if !operatorEqual || !valuesEqual {
 							optExists = true
 							op = "replace"
-							value = []corev1.NodeSelectorTerm{rna}
 							path = fmt.Sprintf("%s/%d", path, i)
 						} else {
 							optExists = true
@@ -296,7 +294,6 @@ func addPreferredNodeAffinityTerms(target, preferredNodeAffinityTerms []corev1.P
 						if !operatorEqual || !valuesEqual || !weightEqual {
 							optExists = true
 							op = "replace"
-							value = []corev1.PreferredSchedulingTerm{pna}
 							path = fmt.Sprintf("%s/%d", path, i)
 						} else {
 							optExists = true
@@ -318,7 +315,6 @@ func addPreferredNodeAffinityTerms(target, preferredNodeAffinityTerms []corev1.P
 						if !operatorEqual || !valuesEqual || !weightEqual {
 							optExists = true
 							op = "replace"
-							value = []corev1.PreferredSchedulingTerm{pna}
 							path = fmt.Sprintf("%s/%d", path, i)
 						} else {
 							optExists = true
@@ -371,7 +367,6 @@ func addTolerations(target, Tolerations []corev1.Toleration, basePath string) (p
 					if !operatorEqual || !valueEqual || !effectEqual {
 						optExists = true
 						op = "replace"
-						value = []corev1.Toleration{tol}
 						path = fmt.Sprintf("%s/%d", path, i)
 					} else {
 						optExists = true
@@ -427,7 +422,6 @@ func addTopologySpreadConstraints(target, TopologyConstraints []corev1.TopologyS
 					if !skewEqual || !nodeAffinityEqual || !nodeTaintEqual || !unsatisfiableEqual || !labelSelectorEqual || !matchLabelKeysEqual {
 						optExists = true
 						op = "replace"
-						value = []corev1.TopologySpreadConstraint{tsc}
 						path = fmt.Sprintf("%s/%d", path, i)
 					} else {
 						optExists = true

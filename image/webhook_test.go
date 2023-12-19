@@ -442,11 +442,11 @@ func TestAddRequiredNodeAffinity(t *testing.T) {
 			patch: []patchOperation{{
 				Op:   "replace",
 				Path: "/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution/0",
-				Value: []corev1.NodeSelectorTerm{{
+				Value: corev1.NodeSelectorTerm{
 					MatchExpressions: []corev1.NodeSelectorRequirement{{
 						Key: "agentpool", Operator: corev1.NodeSelectorOpIn, Values: []string{"ubuntu20", "ubuntu1804"},
 					}},
-				}},
+				},
 			}},
 		},
 		{
@@ -464,11 +464,11 @@ func TestAddRequiredNodeAffinity(t *testing.T) {
 			patch: []patchOperation{{
 				Op:   "replace",
 				Path: "/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution/0",
-				Value: []corev1.NodeSelectorTerm{{
+				Value: corev1.NodeSelectorTerm{
 					MatchFields: []corev1.NodeSelectorRequirement{{
 						Key: "agentpool", Operator: corev1.NodeSelectorOpIn, Values: []string{"ubuntu18", "ubuntu2004"},
+					},
 					}},
-				}},
 			}},
 		},
 		{
@@ -490,11 +490,11 @@ func TestAddRequiredNodeAffinity(t *testing.T) {
 			patch: []patchOperation{{
 				Op:   "replace",
 				Path: "/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution/1",
-				Value: []corev1.NodeSelectorTerm{{
+				Value: corev1.NodeSelectorTerm{
 					MatchFields: []corev1.NodeSelectorRequirement{{
 						Key: "agentpool", Operator: corev1.NodeSelectorOpIn, Values: []string{"ubuntu18", "ubuntu2004"},
 					}},
-				}},
+				},
 			}},
 		},
 		{
@@ -516,11 +516,11 @@ func TestAddRequiredNodeAffinity(t *testing.T) {
 			patch: []patchOperation{{
 				Op:   "replace",
 				Path: "/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution/0",
-				Value: []corev1.NodeSelectorTerm{{
+				Value: corev1.NodeSelectorTerm{
 					MatchFields: []corev1.NodeSelectorRequirement{{
 						Key: "zone", Operator: corev1.NodeSelectorOpIn, Values: []string{"A", "B", "C"},
 					}},
-				}},
+				},
 			}},
 		},
 	}
@@ -710,14 +710,14 @@ func TestAddPreferredNodeAffinity(t *testing.T) {
 			patch: []patchOperation{{
 				Op:   "replace",
 				Path: "/spec/affinity/nodeAffinity/preferredDuringSchedulingIgnoredDuringExecution/0",
-				Value: []corev1.PreferredSchedulingTerm{{
+				Value: corev1.PreferredSchedulingTerm{
 					Weight: 1,
 					Preference: corev1.NodeSelectorTerm{
 						MatchFields: []corev1.NodeSelectorRequirement{
 							{Key: "disktype", Operator: corev1.NodeSelectorOpIn, Values: []string{"hdd"}},
 						},
 					},
-				}},
+				},
 			}},
 		},
 		{
@@ -748,14 +748,14 @@ func TestAddPreferredNodeAffinity(t *testing.T) {
 			patch: []patchOperation{{
 				Op:   "replace",
 				Path: "/spec/affinity/nodeAffinity/preferredDuringSchedulingIgnoredDuringExecution/1",
-				Value: []corev1.PreferredSchedulingTerm{{
+				Value: corev1.PreferredSchedulingTerm{
 					Weight: 1,
 					Preference: corev1.NodeSelectorTerm{
 						MatchFields: []corev1.NodeSelectorRequirement{
 							{Key: "disktype", Operator: corev1.NodeSelectorOpIn, Values: []string{"hdd"}},
 						},
 					},
-				}},
+				},
 			}},
 		},
 	}
@@ -851,12 +851,12 @@ func TestAddTolerations(t *testing.T) {
 			patch: []patchOperation{{
 				Op:   "replace",
 				Path: "/spec/tolerations/0",
-				Value: []corev1.Toleration{{
+				Value: corev1.Toleration{
 					Key:      "kubernetes.io/os",
 					Operator: corev1.TolerationOpEqual,
 					Value:    "Linux",
 					Effect:   corev1.TaintEffectPreferNoSchedule,
-				}},
+				},
 			}},
 		},
 		{
@@ -880,12 +880,12 @@ func TestAddTolerations(t *testing.T) {
 			patch: []patchOperation{{
 				Op:   "replace",
 				Path: "/spec/tolerations/1",
-				Value: []corev1.Toleration{{
+				Value: corev1.Toleration{
 					Key:      "kubernetes.io/os",
 					Operator: corev1.TolerationOpEqual,
 					Value:    "Linux",
 					Effect:   corev1.TaintEffectPreferNoSchedule,
-				}},
+				},
 			}},
 		},
 	}
@@ -1010,7 +1010,7 @@ func TestAddTopologySpreadConstraints(t *testing.T) {
 			patch: []patchOperation{{
 				Op:   "replace",
 				Path: "/spec/topologySpreadConstraints/0",
-				Value: []corev1.TopologySpreadConstraint{{
+				Value: corev1.TopologySpreadConstraint{
 					MaxSkew:            2,
 					TopologyKey:        "topology.kubernetes.io/zone",
 					WhenUnsatisfiable:  "ScheduleAnyway",
@@ -1018,7 +1018,7 @@ func TestAddTopologySpreadConstraints(t *testing.T) {
 					NodeAffinityPolicy: &topologyHonorPolicy,
 					NodeTaintsPolicy:   &topologyHonorPolicy,
 					MatchLabelKeys:     []string{"pod-template-hash"},
-				}},
+				},
 			}},
 		},
 		{
@@ -1052,7 +1052,7 @@ func TestAddTopologySpreadConstraints(t *testing.T) {
 			patch: []patchOperation{{
 				Op:   "replace",
 				Path: "/spec/topologySpreadConstraints/1",
-				Value: []corev1.TopologySpreadConstraint{{
+				Value: corev1.TopologySpreadConstraint{
 					MaxSkew:            2,
 					TopologyKey:        "topology.kubernetes.io/zone",
 					WhenUnsatisfiable:  "ScheduleAnyway",
@@ -1060,7 +1060,7 @@ func TestAddTopologySpreadConstraints(t *testing.T) {
 					NodeAffinityPolicy: &topologyHonorPolicy,
 					NodeTaintsPolicy:   &topologyHonorPolicy,
 					MatchLabelKeys:     []string{"pod-template"},
-				}},
+				},
 			}},
 		},
 	}
