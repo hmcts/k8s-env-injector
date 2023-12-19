@@ -200,28 +200,26 @@ func addRequiredNodeAffinityTerms(target, requiredNodeAffinityTerms []corev1.Nod
 		value = rna
 		path := basePath
 		skip := false
-		op := "add"
+		var op string
 		if first {
 			first = false
+			op = "add"
 			value = []corev1.NodeSelectorTerm{rna}
 		} else {
 			optExists := false
 			for _, targetOpt := range target {
 				if len(targetOpt.MatchExpressions) > 0 {
+
 					matchExpr := targetOpt.MatchExpressions[idx]
 					rnaMatchExpr := rna.MatchExpressions[idx]
 					keyEqual := cmp.Equal(matchExpr.Key, rnaMatchExpr.Key)
-					operatorEqual := cmp.Equal(matchExpr.Operator, rnaMatchExpr.Operator)
-					valuesEqual := cmp.Equal(matchExpr.Values, rnaMatchExpr.Values)
-
 					if keyEqual {
+						operatorEqual := cmp.Equal(matchExpr.Operator, rnaMatchExpr.Operator)
+						valuesEqual := cmp.Equal(matchExpr.Values, rnaMatchExpr.Values)
 						if !operatorEqual || !valuesEqual {
 							optExists = true
-							patch = append(patch, patchOperation{
-								Op:    "replace",
-								Path:  path,
-								Value: []corev1.NodeSelectorTerm{rna},
-							})
+							op = "replace"
+							value = []corev1.NodeSelectorTerm{rna}
 						} else {
 							optExists = true
 							skip = true
@@ -234,17 +232,13 @@ func addRequiredNodeAffinityTerms(target, requiredNodeAffinityTerms []corev1.Nod
 					matchFlds := targetOpt.MatchFields[idx]
 					rnamatchFlds := rna.MatchFields[idx]
 					keyEqual := cmp.Equal(matchFlds.Key, rnamatchFlds.Key)
-					operatorEqual := cmp.Equal(matchFlds.Operator, rnamatchFlds.Operator)
-					valuesEqual := cmp.Equal(matchFlds.Values, rnamatchFlds.Values)
-
 					if keyEqual {
+						operatorEqual := cmp.Equal(matchFlds.Operator, rnamatchFlds.Operator)
+						valuesEqual := cmp.Equal(matchFlds.Values, rnamatchFlds.Values)
 						if !operatorEqual || !valuesEqual {
 							optExists = true
-							patch = append(patch, patchOperation{
-								Op:    "replace",
-								Path:  path,
-								Value: []corev1.NodeSelectorTerm{rna},
-							})
+							op = "replace"
+							value = []corev1.NodeSelectorTerm{rna}
 						} else {
 							optExists = true
 							skip = true
@@ -254,6 +248,7 @@ func addRequiredNodeAffinityTerms(target, requiredNodeAffinityTerms []corev1.Nod
 				}
 			}
 			if !optExists {
+				op = "add"
 				path = path + "/-"
 			}
 		}
@@ -275,29 +270,68 @@ func addRequiredNodeAffinityTerms(target, requiredNodeAffinityTerms []corev1.Nod
 func addPreferredNodeAffinityTerms(target, preferredNodeAffinityTerms []corev1.PreferredSchedulingTerm, basePath string) (patch []patchOperation) {
 	first := len(target) == 0
 	var value interface{}
-	for _, pna := range preferredNodeAffinityTerms {
+	for idx, pna := range preferredNodeAffinityTerms {
 		value = pna
 		path := basePath
 		skip := false
+		var op string
 		if first {
 			first = false
+			op = "add"
 			value = []corev1.PreferredSchedulingTerm{pna}
 		} else {
 			optExists := false
 			for _, targetOpt := range target {
-				if cmp.Equal(targetOpt, pna) {
-					optExists = true
-					skip = true
-					break
+				if len(targetOpt.Preference.MatchExpressions) > 0 {
+
+					matchExpr := targetOpt.Preference.MatchExpressions[idx]
+					pnaMatchExpr := pna.Preference.MatchExpressions[idx]
+					keyEqual := cmp.Equal(matchExpr.Key, pnaMatchExpr.Key)
+					if keyEqual {
+						operatorEqual := cmp.Equal(matchExpr.Operator, pnaMatchExpr.Operator)
+						valuesEqual := cmp.Equal(matchExpr.Values, pnaMatchExpr.Values)
+						weightEqual := cmp.Equal(targetOpt.Weight, pna.Weight)
+						if !operatorEqual || !valuesEqual || !weightEqual {
+							optExists = true
+							op = "replace"
+							value = []corev1.PreferredSchedulingTerm{pna}
+						} else {
+							optExists = true
+							skip = true
+							break
+						}
+					}
+				}
+
+				if len(targetOpt.Preference.MatchFields) > 0 {
+
+					matchExpr := targetOpt.Preference.MatchFields[idx]
+					pnaMatchExpr := pna.Preference.MatchFields[idx]
+					keyEqual := cmp.Equal(matchExpr.Key, pnaMatchExpr.Key)
+					if keyEqual {
+						operatorEqual := cmp.Equal(matchExpr.Operator, pnaMatchExpr.Operator)
+						valuesEqual := cmp.Equal(matchExpr.Values, pnaMatchExpr.Values)
+						weightEqual := cmp.Equal(targetOpt.Weight, pna.Weight)
+						if !operatorEqual || !valuesEqual || !weightEqual {
+							optExists = true
+							op = "replace"
+							value = []corev1.PreferredSchedulingTerm{pna}
+						} else {
+							optExists = true
+							skip = true
+							break
+						}
+					}
 				}
 			}
 			if !optExists {
+				op = "add"
 				path = path + "/-"
 			}
 		}
 		if !skip {
 			patch = append(patch, patchOperation{
-				Op:    "add",
+				Op:    op,
 				Path:  path,
 				Value: value,
 			})
@@ -316,25 +350,39 @@ func addTolerations(target, Tolerations []corev1.Toleration, basePath string) (p
 		value = tol
 		path := basePath
 		skip := false
+		var op string
 		if first {
 			first = false
+			op = "add"
 			value = []corev1.Toleration{tol}
 		} else {
 			optExists := false
 			for _, targetOpt := range target {
-				if cmp.Equal(targetOpt, tol) {
-					optExists = true
-					skip = true
-					break
+				keyEqual := cmp.Equal(targetOpt.Key, tol.Key)
+				if keyEqual {
+					operatorEqual := cmp.Equal(targetOpt.Operator, tol.Operator)
+					effectEqual := cmp.Equal(targetOpt.Effect, tol.Effect)
+					valueEqual := cmp.Equal(targetOpt.Value, tol.Value)
+
+					if !operatorEqual || !valueEqual || !effectEqual {
+						optExists = true
+						op = "replace"
+						value = []corev1.Toleration{tol}
+					} else {
+						optExists = true
+						skip = true
+						break
+					}
 				}
 			}
 			if !optExists {
+				op = "add"
 				path = path + "/-"
 			}
 		}
 		if !skip {
 			patch = append(patch, patchOperation{
-				Op:    "add",
+				Op:    op,
 				Path:  path,
 				Value: value,
 			})
@@ -353,25 +401,43 @@ func addTopologySpreadConstraints(target, TopologyConstraints []corev1.TopologyS
 		value = tsc
 		path := basePath
 		skip := false
+		var op string
 		if first {
 			first = false
+			op = "add"
 			value = []corev1.TopologySpreadConstraint{tsc}
 		} else {
 			optExists := false
 			for _, targetOpt := range target {
-				if cmp.Equal(targetOpt, tsc) {
-					optExists = true
-					skip = true
-					break
+
+				keyEqual := cmp.Equal(targetOpt.TopologyKey, tsc.TopologyKey)
+				if keyEqual {
+					skewEqual := cmp.Equal(targetOpt.MaxSkew, tsc.MaxSkew)
+					nodeAffinityEqual := cmp.Equal(targetOpt.NodeAffinityPolicy, tsc.NodeAffinityPolicy)
+					nodeTaintEqual := cmp.Equal(targetOpt.NodeTaintsPolicy, tsc.NodeTaintsPolicy)
+					unsatisfiableEqual := cmp.Equal(targetOpt.WhenUnsatisfiable, tsc.WhenUnsatisfiable)
+					labelSelectorEqual := cmp.Equal(targetOpt.LabelSelector, tsc.LabelSelector)
+					matchLabelKeysEqual := cmp.Equal(targetOpt.MatchLabelKeys, tsc.MatchLabelKeys)
+
+					if !skewEqual || !nodeAffinityEqual || !nodeTaintEqual || !unsatisfiableEqual || !labelSelectorEqual || !matchLabelKeysEqual {
+						optExists = true
+						op = "replace"
+						value = []corev1.TopologySpreadConstraint{tsc}
+					} else {
+						optExists = true
+						skip = true
+						break
+					}
 				}
 			}
 			if !optExists {
+				op = "add"
 				path = path + "/-"
 			}
 		}
 		if !skip {
 			patch = append(patch, patchOperation{
-				Op:    "add",
+				Op:    op,
 				Path:  path,
 				Value: value,
 			})

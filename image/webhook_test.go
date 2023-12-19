@@ -340,6 +340,24 @@ func TestAddRequiredNodeAffinity(t *testing.T) {
 			}},
 		},
 		{
+			targetTerms: []corev1.NodeSelectorTerm{},
+			sourceTerms: []corev1.NodeSelectorTerm{{
+				MatchFields: []corev1.NodeSelectorRequirement{{
+					Key: "agentpool", Operator: corev1.NodeSelectorOpIn, Values: []string{"ubuntu18", "ubuntu1804"},
+				}},
+			}},
+			path: "/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution",
+			patch: []patchOperation{{
+				Op:   "add",
+				Path: "/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution",
+				Value: []corev1.NodeSelectorTerm{{
+					MatchFields: []corev1.NodeSelectorRequirement{{
+						Key: "agentpool", Operator: corev1.NodeSelectorOpIn, Values: []string{"ubuntu18", "ubuntu1804"},
+					}},
+				}},
+			}},
+		},
+		{
 			targetTerms: []corev1.NodeSelectorTerm{{
 				MatchExpressions: []corev1.NodeSelectorRequirement{{
 					Key: "zone", Operator: corev1.NodeSelectorOpIn, Values: []string{"uksouth"},
@@ -355,6 +373,27 @@ func TestAddRequiredNodeAffinity(t *testing.T) {
 				Op: "add", Path: "/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution/-",
 				Value: corev1.NodeSelectorTerm{
 					MatchExpressions: []corev1.NodeSelectorRequirement{{
+						Key: "agentpool", Operator: corev1.NodeSelectorOpIn, Values: []string{"ubuntu18", "ubuntu1804"},
+					}},
+				},
+			}},
+		},
+		{
+			targetTerms: []corev1.NodeSelectorTerm{{
+				MatchFields: []corev1.NodeSelectorRequirement{{
+					Key: "zone", Operator: corev1.NodeSelectorOpIn, Values: []string{"uksouth"},
+				}},
+			}},
+			sourceTerms: []corev1.NodeSelectorTerm{{
+				MatchFields: []corev1.NodeSelectorRequirement{{
+					Key: "agentpool", Operator: corev1.NodeSelectorOpIn, Values: []string{"ubuntu18", "ubuntu1804"},
+				}},
+			}},
+			path: "/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution",
+			patch: []patchOperation{{
+				Op: "add", Path: "/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution/-",
+				Value: corev1.NodeSelectorTerm{
+					MatchFields: []corev1.NodeSelectorRequirement{{
 						Key: "agentpool", Operator: corev1.NodeSelectorOpIn, Values: []string{"ubuntu18", "ubuntu1804"},
 					}},
 				},
@@ -382,7 +421,7 @@ func TestAddRequiredNodeAffinity(t *testing.T) {
 			}},
 			sourceTerms: []corev1.NodeSelectorTerm{{
 				MatchFields: []corev1.NodeSelectorRequirement{{
-					Key: "agentpool", Operator: corev1.NodeSelectorOpNotIn, Values: []string{"ubuntu18", "ubuntu1804"},
+					Key: "agentpool", Operator: corev1.NodeSelectorOpIn, Values: []string{"ubuntu18", "ubuntu1804"},
 				}},
 			}},
 			path:  "/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution",
@@ -429,6 +468,30 @@ func TestAddPreferredNodeAffinity(t *testing.T) {
 			}},
 		},
 		{
+			targetTerms: []corev1.PreferredSchedulingTerm{},
+			sourceTerms: []corev1.PreferredSchedulingTerm{{
+				Weight: 1,
+				Preference: corev1.NodeSelectorTerm{
+					MatchFields: []corev1.NodeSelectorRequirement{
+						{Key: "disktype", Operator: corev1.NodeSelectorOpIn, Values: []string{"ssd"}},
+					},
+				},
+			}},
+			path: "/spec/affinity/nodeAffinity/preferredDuringSchedulingIgnoredDuringExecution",
+			patch: []patchOperation{{
+				Op:   "add",
+				Path: "/spec/affinity/nodeAffinity/preferredDuringSchedulingIgnoredDuringExecution",
+				Value: []corev1.PreferredSchedulingTerm{{
+					Weight: 1,
+					Preference: corev1.NodeSelectorTerm{
+						MatchFields: []corev1.NodeSelectorRequirement{
+							{Key: "disktype", Operator: corev1.NodeSelectorOpIn, Values: []string{"ssd"}},
+						},
+					},
+				}},
+			}},
+		},
+		{
 			targetTerms: []corev1.PreferredSchedulingTerm{{
 				Weight: 1,
 				Preference: corev1.NodeSelectorTerm{
@@ -463,6 +526,37 @@ func TestAddPreferredNodeAffinity(t *testing.T) {
 			targetTerms: []corev1.PreferredSchedulingTerm{{
 				Weight: 1,
 				Preference: corev1.NodeSelectorTerm{
+					MatchFields: []corev1.NodeSelectorRequirement{
+						{Key: "zone", Operator: corev1.NodeSelectorOpIn, Values: []string{"uksouth"}},
+					},
+				},
+			}},
+			sourceTerms: []corev1.PreferredSchedulingTerm{{
+				Weight: 1,
+				Preference: corev1.NodeSelectorTerm{
+					MatchFields: []corev1.NodeSelectorRequirement{
+						{Key: "disktype", Operator: corev1.NodeSelectorOpIn, Values: []string{"ssd"}},
+					},
+				},
+			}},
+			path: "/spec/affinity/nodeAffinity/preferredDuringSchedulingIgnoredDuringExecution",
+			patch: []patchOperation{{
+				Op:   "add",
+				Path: "/spec/affinity/nodeAffinity/preferredDuringSchedulingIgnoredDuringExecution/-",
+				Value: corev1.PreferredSchedulingTerm{
+					Weight: 1,
+					Preference: corev1.NodeSelectorTerm{
+						MatchFields: []corev1.NodeSelectorRequirement{
+							{Key: "disktype", Operator: corev1.NodeSelectorOpIn, Values: []string{"ssd"}},
+						},
+					},
+				},
+			}},
+		},
+		{
+			targetTerms: []corev1.PreferredSchedulingTerm{{
+				Weight: 1,
+				Preference: corev1.NodeSelectorTerm{
 					MatchExpressions: []corev1.NodeSelectorRequirement{
 						{Key: "disktype", Operator: corev1.NodeSelectorOpIn, Values: []string{"ssd"}},
 					},
@@ -472,6 +566,26 @@ func TestAddPreferredNodeAffinity(t *testing.T) {
 				Weight: 1,
 				Preference: corev1.NodeSelectorTerm{
 					MatchExpressions: []corev1.NodeSelectorRequirement{
+						{Key: "disktype", Operator: corev1.NodeSelectorOpIn, Values: []string{"ssd"}},
+					},
+				},
+			}},
+			path:  "/spec/affinity/nodeAffinity/preferredDuringSchedulingIgnoredDuringExecution",
+			patch: []patchOperation{},
+		},
+		{
+			targetTerms: []corev1.PreferredSchedulingTerm{{
+				Weight: 1,
+				Preference: corev1.NodeSelectorTerm{
+					MatchFields: []corev1.NodeSelectorRequirement{
+						{Key: "disktype", Operator: corev1.NodeSelectorOpIn, Values: []string{"ssd"}},
+					},
+				},
+			}},
+			sourceTerms: []corev1.PreferredSchedulingTerm{{
+				Weight: 1,
+				Preference: corev1.NodeSelectorTerm{
+					MatchFields: []corev1.NodeSelectorRequirement{
 						{Key: "disktype", Operator: corev1.NodeSelectorOpIn, Values: []string{"ssd"}},
 					},
 				},
@@ -695,6 +809,58 @@ func TestAddTopologySpreadConstraints(t *testing.T) {
 			}},
 			path:  "/spec/topologySpreadConstraints",
 			patch: []patchOperation{},
+		},
+		{
+			targetTopologySpreadConstraints: []corev1.TopologySpreadConstraint{{
+				MaxSkew:            1,
+				TopologyKey:        "topology.kubernetes.io/zone",
+				NodeAffinityPolicy: &topologyHonorPolicy,
+				NodeTaintsPolicy:   &topologyHonorPolicy,
+				WhenUnsatisfiable:  "ScheduleAnyway",
+				LabelSelector: &metav1.LabelSelector{
+					MatchLabels: map[string]string{
+						"app.kubernetes.io/name": "test-app",
+					},
+				},
+				MatchLabelKeys: []string{
+					"pod-template-hash",
+				},
+			}},
+			sourceTopologySpreadConstraints: []corev1.TopologySpreadConstraint{{
+				MaxSkew:            2,
+				TopologyKey:        "topology.kubernetes.io/zone",
+				NodeAffinityPolicy: &topologyHonorPolicy,
+				NodeTaintsPolicy:   &topologyHonorPolicy,
+				WhenUnsatisfiable:  "ScheduleAnyway",
+				LabelSelector: &metav1.LabelSelector{
+					MatchLabels: map[string]string{
+						"app.kubernetes.io/name": "test",
+					},
+				},
+				MatchLabelKeys: []string{
+					"pod-template-hash",
+				},
+			}},
+			path: "/spec/topologySpreadConstraints",
+			patch: []patchOperation{{
+				Op:   "replace",
+				Path: "/spec/topologySpreadConstraints",
+				Value: []corev1.TopologySpreadConstraint{{
+					MaxSkew:            2,
+					TopologyKey:        "topology.kubernetes.io/zone",
+					NodeAffinityPolicy: &topologyHonorPolicy,
+					NodeTaintsPolicy:   &topologyHonorPolicy,
+					WhenUnsatisfiable:  "ScheduleAnyway",
+					LabelSelector: &metav1.LabelSelector{
+						MatchLabels: map[string]string{
+							"app.kubernetes.io/name": "test",
+						},
+					},
+					MatchLabelKeys: []string{
+						"pod-template-hash",
+					},
+				}},
+			}},
 		},
 	}
 	for _, e := range envs {
