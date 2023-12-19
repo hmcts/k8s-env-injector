@@ -14,7 +14,22 @@ data:
       {{- (include "chart-env-injector.environment" .) | indent 6 }}
     dnsOptions:
       {{- (include "chart-env-injector.dnsOptions" .) | indent 6 }}
-{{- if .Values.nodeAffinityTerms }}
-    nodeAffinityTerms:
-{{ tpl (toYaml .Values.nodeAffinityTerms | indent 6) . }}
+{{- if .Values.removePodAntiAffinity }}
+    removePodAntiAffinity:  {{ .Values.removePodAntiAffinity }}
+{{- end }}
+{{- if .Values.requiredNodeAffinityTerms }}
+    requiredNodeAffinityTerms:
+{{ tpl (toYaml .Values.requiredNodeAffinityTerms | indent 6) . }}
+{{- end }}
+{{- if .Values.preferredNodeAffinityTerms }}
+    preferredNodeAffinityTerms:
+{{ tpl (toYaml .Values.preferredNodeAffinityTerms | indent 6) . }}
+{{- end }}
+{{- if .Values.tolerations }}
+    tolerations:
+{{ tpl (toYaml .Values.tolerations | indent 6) . }}
+{{- end }}
+{{- if .Values.topologyConstraints }}
+    topologyConstraints:
+{{ tpl (toYaml .Values.topologyConstraints | indent 6) . }}
 {{- end }}

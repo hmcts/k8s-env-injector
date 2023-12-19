@@ -4,13 +4,14 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/ghodss/yaml"
 	"github.com/golang/glog"
-	"k8s.io/api/admission/v1"
+	v1 "k8s.io/api/admission/v1"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -48,9 +49,13 @@ type WhSvrParameters struct {
 }
 
 type Config struct {
-	Env               []corev1.EnvVar             `yaml:"env"`
-	DnsOptions        []corev1.PodDNSConfigOption `yaml:"dnsOptions,omitempty"`
-	NodeAffinityTerms []corev1.NodeSelectorTerm   `yaml:"nodeAffinityTerms,omitempty"`
+	Env                        []corev1.EnvVar                   `yaml:"env"`
+	DnsOptions                 []corev1.PodDNSConfigOption       `yaml:"dnsOptions,omitempty"`
+	RequiredNodeAffinityTerms  []corev1.NodeSelectorTerm         `yaml:"requiredNodeAffinityTerms,omitempty"`
+	PreferredNodeAffinityTerms []corev1.PreferredSchedulingTerm  `yaml:"preferredNodeAffinityTerms,omitempty"`
+	Tolerations                []corev1.Toleration               `yaml:"tolerations,omitempty"`
+	TopologyConstraints        []corev1.TopologySpreadConstraint `yaml:"topologyConstraints,omitempty"`
+	RemovePodAntiAffinity      bool                              `yaml:"removePodAntiAffinity,omitempty"`
 }
 
 type patchOperation struct {
@@ -65,7 +70,7 @@ func init() {
 }
 
 func loadConfig(configFile string) (*Config, error) {
-	data, err := ioutil.ReadFile(configFile)
+	data, err := os.ReadFile(configFile)
 	if err != nil {
 		return nil, err
 	}
@@ -173,12 +178,12 @@ func addDnsOptions(target, dnsOptions []corev1.PodDNSConfigOption, basePath stri
 	return patch
 }
 
-// addNodeAffinityTerms performs the mutation(s) needed to add selector terms to the node affinity
+// addRequiredNodeAffinityTerms performs the mutation(s) needed to add selector terms to the node affinity
 // RequiredDuringSchedulingIgnoredDuringExecution section of to the target resource
-func addNodeAffinityTerms(target, nodeAffinityTerms []corev1.NodeSelectorTerm, basePath string) (patch []patchOperation) {
+func addRequiredNodeAffinityTerms(target, requiredNodeAffinityTerms []corev1.NodeSelectorTerm, basePath string) (patch []patchOperation) {
 	first := len(target) == 0
 	var value interface{}
-	for _, nst := range nodeAffinityTerms {
+	for _, nst := range requiredNodeAffinityTerms {
 		value = nst
 		path := basePath
 		if first {
@@ -193,6 +198,83 @@ func addNodeAffinityTerms(target, nodeAffinityTerms []corev1.NodeSelectorTerm, b
 			Value: value,
 		})
 	}
+	return patch
+}
+
+// addPreferredNodeAffinityTerms performs the mutation(s) needed to add selector terms to the node affinity
+// preferredDuringSchedulingIgnoredDuringExecution section of to the target resource
+func addPreferredNodeAffinityTerms(target, preferredNodeAffinityTerms []corev1.PreferredSchedulingTerm, basePath string) (patch []patchOperation) {
+	first := len(target) == 0
+	var value interface{}
+	for _, pst := range preferredNodeAffinityTerms {
+		value = pst
+		path := basePath
+		if first {
+			first = false
+			value = []corev1.PreferredSchedulingTerm{pst}
+		} else {
+			path = path + "/-"
+		}
+		patch = append(patch, patchOperation{
+			Op:    "add",
+			Path:  path,
+			Value: value,
+		})
+	}
+	return patch
+}
+
+// addToleration performs the mutation(s) needed to add the extra tolerations to the target resource
+func addTolerations(target, Tolerations []corev1.Toleration, basePath string) (patch []patchOperation) {
+	first := len(target) == 0
+	var value interface{}
+	for _, tol := range Tolerations {
+		value = tol
+		path := basePath
+		if first {
+			first = false
+			value = []corev1.Toleration{tol}
+		} else {
+			path = path + "/-"
+		}
+		patch = append(patch, patchOperation{
+			Op:    "add",
+			Path:  path,
+			Value: value,
+		})
+	}
+	return patch
+}
+
+// addTopologySpreadConstraints performs the mutation(s) needed to add Topology Spread Constraints to your resource
+func addTopologySpreadConstraints(target, TopologyConstraints []corev1.TopologySpreadConstraint, basePath string) (patch []patchOperation) {
+	first := len(target) == 0
+	var value interface{}
+	for _, tsc := range TopologyConstraints {
+		value = tsc
+		path := basePath
+		if first {
+			first = false
+			value = []corev1.TopologySpreadConstraint{tsc}
+		} else {
+			path = path + "/-"
+		}
+		patch = append(patch, patchOperation{
+			Op:    "add",
+			Path:  path,
+			Value: value,
+		})
+	}
+	return patch
+}
+
+// removePodAntiAffinity performs the mutation(s) needed to remove podAntiAffinity
+func removePodAntiAffinity(basePath string) (patch []patchOperation) {
+	patch = append(patch, patchOperation{
+		Op:   "remove",
+		Path: basePath,
+	})
+
 	return patch
 }
 
@@ -239,7 +321,27 @@ func createPatch(pod *corev1.Pod, envConfig *Config, annotations map[string]stri
 		}
 		patches = append(patches, addDnsOptions(pod.Spec.DNSConfig.Options, envConfig.DnsOptions, fmt.Sprintf("/spec/dnsConfig/options"))...)
 	}
-	if len(envConfig.NodeAffinityTerms) > 0 {
+	if len(envConfig.Tolerations) > 0 {
+		if pod.Spec.Tolerations == nil {
+			pod.Spec.Tolerations = []corev1.Toleration{}
+			patches = append(patches, patchOperation{Op: "add", Path: "/spec/tolerations", Value: []corev1.Toleration{}})
+		}
+		patches = append(patches, addTolerations(pod.Spec.Tolerations, envConfig.Tolerations, fmt.Sprintf("/spec/tolerations"))...)
+	}
+	if len(envConfig.TopologyConstraints) > 0 {
+		if pod.Spec.TopologySpreadConstraints == nil {
+			pod.Spec.TopologySpreadConstraints = []corev1.TopologySpreadConstraint{}
+			patches = append(patches, patchOperation{Op: "add", Path: "/spec/topologySpreadConstraints", Value: []corev1.TopologySpreadConstraint{}})
+		}
+		patches = append(patches, addTopologySpreadConstraints(pod.Spec.TopologySpreadConstraints, envConfig.TopologyConstraints, fmt.Sprintf("/spec/topologySpreadConstraints"))...)
+	}
+	if envConfig.RemovePodAntiAffinity {
+		if pod.Spec.Affinity != nil && pod.Spec.Affinity.PodAntiAffinity != nil {
+			// Remove PodAntiAffinity
+			patches = append(patches, removePodAntiAffinity("/spec/affinity/podAntiAffinity")...)
+		}
+	}
+	if len(envConfig.RequiredNodeAffinityTerms) > 0 {
 		if pod.Spec.Affinity == nil {
 			pod.Spec.Affinity = &corev1.Affinity{}
 			patches = append(patches, patchOperation{Op: "add", Path: "/spec/affinity", Value: corev1.Affinity{}})
@@ -252,9 +354,26 @@ func createPatch(pod *corev1.Pod, envConfig *Config, annotations map[string]stri
 			pod.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution = &corev1.NodeSelector{}
 			patches = append(patches, patchOperation{Op: "add", Path: "/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution", Value: corev1.NodeSelector{}})
 		}
-		patches = append(patches, addNodeAffinityTerms(pod.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms,
-			envConfig.NodeAffinityTerms, fmt.Sprintf("/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution/nodeSelectorTerms"))...)
+		patches = append(patches, addRequiredNodeAffinityTerms(pod.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms,
+			envConfig.RequiredNodeAffinityTerms, fmt.Sprintf("/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution/nodeSelectorTerms"))...)
 	}
+	if len(envConfig.PreferredNodeAffinityTerms) > 0 {
+		if pod.Spec.Affinity == nil {
+			pod.Spec.Affinity = &corev1.Affinity{}
+			patches = append(patches, patchOperation{Op: "add", Path: "/spec/affinity", Value: corev1.Affinity{}})
+		}
+		if pod.Spec.Affinity.NodeAffinity == nil {
+			pod.Spec.Affinity.NodeAffinity = &corev1.NodeAffinity{}
+			patches = append(patches, patchOperation{Op: "add", Path: "/spec/affinity/nodeAffinity", Value: corev1.NodeAffinity{}})
+		}
+		if pod.Spec.Affinity.NodeAffinity.PreferredDuringSchedulingIgnoredDuringExecution == nil {
+			pod.Spec.Affinity.NodeAffinity.PreferredDuringSchedulingIgnoredDuringExecution = []corev1.PreferredSchedulingTerm{}
+			patches = append(patches, patchOperation{Op: "add", Path: "/spec/affinity/nodeAffinity/preferredDuringSchedulingIgnoredDuringExecution", Value: []corev1.PreferredSchedulingTerm{}})
+		}
+		patches = append(patches, addPreferredNodeAffinityTerms(pod.Spec.Affinity.NodeAffinity.PreferredDuringSchedulingIgnoredDuringExecution,
+			envConfig.PreferredNodeAffinityTerms, "/spec/affinity/nodeAffinity/preferredDuringSchedulingIgnoredDuringExecution")...)
+	}
+
 	patches = append(patches, updateAnnotation(pod.Annotations, annotations)...)
 
 	return json.Marshal(patches)
@@ -309,7 +428,7 @@ func (whsvr *WebhookServer) mutate(ar *v1.AdmissionReview) *v1.AdmissionResponse
 func (whsvr *WebhookServer) serve(w http.ResponseWriter, r *http.Request) {
 	var body []byte
 	if r.Body != nil {
-		if data, err := ioutil.ReadAll(r.Body); err == nil {
+		if data, err := io.ReadAll(r.Body); err == nil {
 			body = data
 		}
 	}
