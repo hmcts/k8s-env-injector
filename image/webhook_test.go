@@ -374,6 +374,20 @@ func TestAddRequiredNodeAffinity(t *testing.T) {
 			path:  "/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution",
 			patch: []patchOperation{},
 		},
+		{
+			targetTerms: []corev1.NodeSelectorTerm{{
+				MatchFields: []corev1.NodeSelectorRequirement{{
+					Key: "agentpool", Operator: corev1.NodeSelectorOpIn, Values: []string{"ubuntu18", "ubuntu1804"},
+				}},
+			}},
+			sourceTerms: []corev1.NodeSelectorTerm{{
+				MatchFields: []corev1.NodeSelectorRequirement{{
+					Key: "agentpool", Operator: corev1.NodeSelectorOpNotIn, Values: []string{"ubuntu18", "ubuntu1804"},
+				}},
+			}},
+			path:  "/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution",
+			patch: []patchOperation{},
+		},
 	}
 	for _, e := range envs {
 		patch := addRequiredNodeAffinityTerms(e.targetTerms, e.sourceTerms, e.path)

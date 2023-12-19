@@ -14,6 +14,8 @@ data:
             operator: NotIn
             values:
               - system
+          - key: kubernetes.azure.com/scalesetpriority
+            operator: DoesNotExist
     preferredNodeAffinityTerms:
       - weight: 50
         preference:

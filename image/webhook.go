@@ -196,21 +196,61 @@ func addDnsOptions(target, dnsOptions []corev1.PodDNSConfigOption, basePath stri
 func addRequiredNodeAffinityTerms(target, requiredNodeAffinityTerms []corev1.NodeSelectorTerm, basePath string) (patch []patchOperation) {
 	first := len(target) == 0
 	var value interface{}
-	for _, nst := range requiredNodeAffinityTerms {
-		value = nst
+	for idx, rna := range requiredNodeAffinityTerms {
+		value = rna
 		path := basePath
 		skip := false
+		op := "add"
 		if first {
 			first = false
-			value = []corev1.NodeSelectorTerm{nst}
+			value = []corev1.NodeSelectorTerm{rna}
 		} else {
 			optExists := false
-			for idx, targetOpt := range target {
-				if cmp.Equal(targetOpt, nst) {
-					optExists = true
-					skip = true
-					path = fmt.Sprintf("%s/%d", path, idx)
-					break
+			for _, targetOpt := range target {
+				if len(targetOpt.MatchExpressions) > 0 {
+					matchExpr := targetOpt.MatchExpressions[idx]
+					rnaMatchExpr := rna.MatchExpressions[idx]
+					keyEqual := cmp.Equal(matchExpr.Key, rnaMatchExpr.Key)
+					operatorEqual := cmp.Equal(matchExpr.Operator, rnaMatchExpr.Operator)
+					valuesEqual := cmp.Equal(matchExpr.Values, rnaMatchExpr.Values)
+
+					if keyEqual {
+						if !operatorEqual || !valuesEqual {
+							optExists = true
+							patch = append(patch, patchOperation{
+								Op:    "replace",
+								Path:  path,
+								Value: []corev1.NodeSelectorTerm{rna},
+							})
+						} else {
+							optExists = true
+							skip = true
+							break
+						}
+					}
+				}
+
+				if len(targetOpt.MatchFields) > 0 {
+					matchFlds := targetOpt.MatchFields[idx]
+					rnamatchFlds := rna.MatchFields[idx]
+					keyEqual := cmp.Equal(matchFlds.Key, rnamatchFlds.Key)
+					operatorEqual := cmp.Equal(matchFlds.Operator, rnamatchFlds.Operator)
+					valuesEqual := cmp.Equal(matchFlds.Values, rnamatchFlds.Values)
+
+					if keyEqual {
+						if !operatorEqual || !valuesEqual {
+							optExists = true
+							patch = append(patch, patchOperation{
+								Op:    "replace",
+								Path:  path,
+								Value: []corev1.NodeSelectorTerm{rna},
+							})
+						} else {
+							optExists = true
+							skip = true
+							break
+						}
+					}
 				}
 			}
 			if !optExists {
@@ -219,7 +259,7 @@ func addRequiredNodeAffinityTerms(target, requiredNodeAffinityTerms []corev1.Nod
 		}
 		if !skip {
 			patch = append(patch, patchOperation{
-				Op:    "add",
+				Op:    op,
 				Path:  path,
 				Value: value,
 			})
@@ -235,20 +275,19 @@ func addRequiredNodeAffinityTerms(target, requiredNodeAffinityTerms []corev1.Nod
 func addPreferredNodeAffinityTerms(target, preferredNodeAffinityTerms []corev1.PreferredSchedulingTerm, basePath string) (patch []patchOperation) {
 	first := len(target) == 0
 	var value interface{}
-	for _, pst := range preferredNodeAffinityTerms {
-		value = pst
+	for _, pna := range preferredNodeAffinityTerms {
+		value = pna
 		path := basePath
 		skip := false
 		if first {
 			first = false
-			value = []corev1.PreferredSchedulingTerm{pst}
+			value = []corev1.PreferredSchedulingTerm{pna}
 		} else {
 			optExists := false
-			for idx, targetOpt := range target {
-				if cmp.Equal(targetOpt, pst) {
+			for _, targetOpt := range target {
+				if cmp.Equal(targetOpt, pna) {
 					optExists = true
 					skip = true
-					path = fmt.Sprintf("%s/%d", path, idx)
 					break
 				}
 			}
@@ -282,11 +321,10 @@ func addTolerations(target, Tolerations []corev1.Toleration, basePath string) (p
 			value = []corev1.Toleration{tol}
 		} else {
 			optExists := false
-			for idx, targetOpt := range target {
+			for _, targetOpt := range target {
 				if cmp.Equal(targetOpt, tol) {
 					optExists = true
 					skip = true
-					path = fmt.Sprintf("%s/%d", path, idx)
 					break
 				}
 			}
@@ -320,11 +358,10 @@ func addTopologySpreadConstraints(target, TopologyConstraints []corev1.TopologyS
 			value = []corev1.TopologySpreadConstraint{tsc}
 		} else {
 			optExists := false
-			for idx, targetOpt := range target {
+			for _, targetOpt := range target {
 				if cmp.Equal(targetOpt, tsc) {
 					optExists = true
 					skip = true
-					path = fmt.Sprintf("%s/%d", path, idx)
 					break
 				}
 			}
