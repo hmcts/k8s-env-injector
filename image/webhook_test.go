@@ -197,21 +197,24 @@ func TestAddEnv(t *testing.T) {
 		path      string
 		patch     []patchOperation
 	}{
-		{targetEnv: []corev1.EnvVar{{Name: "ENV_TEST_NAME", Value: "env-test-value", ValueFrom: nil}},
+		{
+			targetEnv: []corev1.EnvVar{{Name: "ENV_TEST_NAME", Value: "env-test-value", ValueFrom: nil}},
 			sourceEnv: []corev1.EnvVar{{Name: "CLUSTER_NAME", Value: "aks-test-01", ValueFrom: nil}},
 			path:      "/spec/containers/nginx/env",
 			patch: []patchOperation{
 				{Op: "add", Path: "/spec/containers/nginx/env/-", Value: corev1.EnvVar{Name: "CLUSTER_NAME", Value: "aks-test-01", ValueFrom: nil}},
 			},
 		},
-		{targetEnv: []corev1.EnvVar{},
+		{
+			targetEnv: []corev1.EnvVar{},
 			sourceEnv: []corev1.EnvVar{{Name: "CLUSTER_NAME", Value: "aks-test-01", ValueFrom: nil}},
 			path:      "/spec/containers/nginx/env",
 			patch: []patchOperation{
 				{Op: "add", Path: "/spec/containers/nginx/env", Value: []corev1.EnvVar{{Name: "CLUSTER_NAME", Value: "aks-test-01", ValueFrom: nil}}},
 			},
 		},
-		{targetEnv: []corev1.EnvVar{{Name: "ENV_TEST_NAME", Value: "env-test-value", ValueFrom: nil}},
+		{
+			targetEnv: []corev1.EnvVar{{Name: "ENV_TEST_NAME", Value: "env-test-value", ValueFrom: nil}},
 			sourceEnv: []corev1.EnvVar{{Name: "CLUSTER_NAME", Value: "aks-test-01", ValueFrom: nil}, {Name: "SUBSCRIPTION", Value: "subscription-01", ValueFrom: nil}},
 			path:      "/spec/containers/nginx/env",
 			patch: []patchOperation{
@@ -219,7 +222,8 @@ func TestAddEnv(t *testing.T) {
 				{Op: "add", Path: "/spec/containers/nginx/env/-", Value: corev1.EnvVar{Name: "SUBSCRIPTION", Value: "subscription-01", ValueFrom: nil}},
 			},
 		},
-		{targetEnv: nil,
+		{
+			targetEnv: nil,
 			sourceEnv: []corev1.EnvVar{{Name: "CLUSTER_NAME", Value: "aks-test-01", ValueFrom: nil}, {Name: "SUBSCRIPTION", Value: "subscription-01", ValueFrom: nil}},
 			path:      "/spec/containers/nginx/env",
 			patch: []patchOperation{
@@ -227,12 +231,19 @@ func TestAddEnv(t *testing.T) {
 				{Op: "add", Path: "/spec/containers/nginx/env/-", Value: corev1.EnvVar{Name: "SUBSCRIPTION", Value: "subscription-01", ValueFrom: nil}},
 			},
 		},
-		{targetEnv: []corev1.EnvVar{{Name: "CLUSTER_NAME", Value: "aks-test-01", ValueFrom: nil}, {Name: "SUBSCRIPTION", Value: "subscription-01", ValueFrom: nil}},
+		{
+			targetEnv: []corev1.EnvVar{{Name: "CLUSTER_NAME", Value: "aks-test-01", ValueFrom: nil}, {Name: "SUBSCRIPTION", Value: "subscription-01", ValueFrom: nil}},
 			sourceEnv: []corev1.EnvVar{{Name: "CLUSTER_NAME", Value: "aks-test-01", ValueFrom: nil}, {Name: "SUBSCRIPTION", Value: "subscription-01", ValueFrom: nil}},
 			path:      "/spec/containers/nginx/env",
+			patch:     []patchOperation{},
+		},
+		{
+			targetEnv: []corev1.EnvVar{{Name: "CLUSTER_NAME", Value: "aks-test-01", ValueFrom: nil}, {Name: "SUBSCRIPTION", Value: "subscription-01", ValueFrom: nil}},
+			sourceEnv: []corev1.EnvVar{{Name: "CLUSTER_NAME", Value: "aks-test-02", ValueFrom: nil}, {Name: "SUBSCRIPTION", Value: "subscription-02", ValueFrom: nil}},
+			path:      "/spec/containers/nginx/env",
 			patch: []patchOperation{
-				{Op: "replace", Path: "/spec/containers/nginx/env/0", Value: corev1.EnvVar{Name: "CLUSTER_NAME", Value: "aks-test-01", ValueFrom: nil}},
-				{Op: "replace", Path: "/spec/containers/nginx/env/1", Value: corev1.EnvVar{Name: "SUBSCRIPTION", Value: "subscription-01", ValueFrom: nil}},
+				{Op: "replace", Path: "/spec/containers/nginx/env/0", Value: corev1.EnvVar{Name: "CLUSTER_NAME", Value: "aks-test-02", ValueFrom: nil}},
+				{Op: "replace", Path: "/spec/containers/nginx/env/1", Value: corev1.EnvVar{Name: "SUBSCRIPTION", Value: "subscription-02", ValueFrom: nil}},
 			},
 		},
 	}
@@ -254,17 +265,20 @@ func TestAddDnsOptions(t *testing.T) {
 		path          string
 		patch         []patchOperation
 	}{
-		{targetOptions: []corev1.PodDNSConfigOption{{Name: "ndots", Value: &ndotsVal}},
+		{
+			targetOptions: []corev1.PodDNSConfigOption{{Name: "ndots", Value: &ndotsVal}},
 			sourceOptions: []corev1.PodDNSConfigOption{{Name: "single-request-reopen", Value: nil}},
 			path:          "/spec/dnsConfig/options",
 			patch:         []patchOperation{{Op: "add", Path: "/spec/dnsConfig/options/-", Value: corev1.PodDNSConfigOption{Name: "single-request-reopen", Value: nil}}},
 		},
-		{targetOptions: []corev1.PodDNSConfigOption{},
+		{
+			targetOptions: []corev1.PodDNSConfigOption{},
 			sourceOptions: []corev1.PodDNSConfigOption{{Name: "ndots", Value: &ndotsVal}},
 			path:          "/spec/dnsConfig/options",
 			patch:         []patchOperation{{Op: "add", Path: "/spec/dnsConfig/options", Value: []corev1.PodDNSConfigOption{{Name: "ndots", Value: &ndotsVal}}}},
 		},
-		{targetOptions: []corev1.PodDNSConfigOption{{Name: "single-request-reopen", Value: nil}},
+		{
+			targetOptions: []corev1.PodDNSConfigOption{{Name: "single-request-reopen", Value: nil}},
 			sourceOptions: []corev1.PodDNSConfigOption{{Name: "ndots", Value: &ndotsVal}, {Name: "use-vc", Value: nil}},
 			path:          "/spec/dnsConfig/options",
 			patch: []patchOperation{
@@ -272,7 +286,8 @@ func TestAddDnsOptions(t *testing.T) {
 				{Op: "add", Path: "/spec/dnsConfig/options/-", Value: corev1.PodDNSConfigOption{Name: "use-vc", Value: nil}},
 			},
 		},
-		{targetOptions: nil,
+		{
+			targetOptions: nil,
 			sourceOptions: []corev1.PodDNSConfigOption{{Name: "ndots", Value: &ndotsVal}, {Name: "use-vc", Value: nil}},
 			path:          "/spec/dnsConfig/options",
 			patch: []patchOperation{
@@ -280,7 +295,8 @@ func TestAddDnsOptions(t *testing.T) {
 				{Op: "add", Path: "/spec/dnsConfig/options/-", Value: corev1.PodDNSConfigOption{Name: "use-vc", Value: nil}},
 			},
 		},
-		{targetOptions: []corev1.PodDNSConfigOption{{Name: "ndots", Value: &ndotsValOld}},
+		{
+			targetOptions: []corev1.PodDNSConfigOption{{Name: "ndots", Value: &ndotsValOld}},
 			sourceOptions: []corev1.PodDNSConfigOption{{Name: "ndots", Value: &ndotsVal}, {Name: "use-vc", Value: nil}},
 			path:          "/spec/dnsConfig/options",
 			patch: []patchOperation{
@@ -288,7 +304,8 @@ func TestAddDnsOptions(t *testing.T) {
 				{Op: "add", Path: "/spec/dnsConfig/options/-", Value: corev1.PodDNSConfigOption{Name: "use-vc", Value: nil}},
 			},
 		},
-		{targetOptions: []corev1.PodDNSConfigOption{{Name: "single-request-reopen", Value: nil}, {Name: "ndots", Value: &ndotsValOld}},
+		{
+			targetOptions: []corev1.PodDNSConfigOption{{Name: "single-request-reopen", Value: nil}, {Name: "ndots", Value: &ndotsValOld}},
 			sourceOptions: []corev1.PodDNSConfigOption{{Name: "ndots", Value: &ndotsVal}, {Name: "use-vc", Value: nil}},
 			path:          "/spec/dnsConfig/options",
 			patch: []patchOperation{
@@ -296,13 +313,11 @@ func TestAddDnsOptions(t *testing.T) {
 				{Op: "add", Path: "/spec/dnsConfig/options/-", Value: corev1.PodDNSConfigOption{Name: "use-vc", Value: nil}},
 			},
 		},
-		{targetOptions: []corev1.PodDNSConfigOption{{Name: "ndots", Value: &ndotsVal}, {Name: "use-vc", Value: nil}},
+		{
+			targetOptions: []corev1.PodDNSConfigOption{{Name: "ndots", Value: &ndotsVal}, {Name: "use-vc", Value: nil}},
 			sourceOptions: []corev1.PodDNSConfigOption{{Name: "ndots", Value: &ndotsVal}, {Name: "use-vc", Value: nil}},
 			path:          "/spec/dnsConfig/options",
-			patch: []patchOperation{
-				{Op: "replace", Path: "/spec/dnsConfig/options/0", Value: corev1.PodDNSConfigOption{Name: "ndots", Value: &ndotsVal}},
-				{Op: "replace", Path: "/spec/dnsConfig/options/1", Value: corev1.PodDNSConfigOption{Name: "use-vc", Value: nil}},
-			},
+			patch:         []patchOperation{},
 		},
 	}
 	for _, e := range envs {
