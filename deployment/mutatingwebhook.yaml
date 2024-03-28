@@ -8,6 +8,7 @@ webhooks:
   - name: env-injector.hmcts.net
     admissionReviewVersions: [v1beta1, v1]
     sideEffects: NoneOnDryRun
+    timeoutSeconds: 30
     clientConfig:
       service:
         name: env-injector-webhook-svc
