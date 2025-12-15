@@ -2,10 +2,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: env-injector-webhook-deployment
+  namespace: env-injector
   labels:
     app: env-injector
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app: env-injector
@@ -20,8 +21,8 @@ spec:
           imagePullPolicy: Always
           args:
             - -envCfgFile=/etc/webhook/config/envconfig.yaml
-            - -tlsCertFile=/etc/webhook/certs/cert.pem
-            - -tlsKeyFile=/etc/webhook/certs/key.pem
+            - -tlsCertFile=/etc/webhook/certs/tls.crt
+            - -tlsKeyFile=/etc/webhook/certs/tls.key
             - -alsologtostderr
             - -v=4
             - 2>&1
@@ -34,7 +35,7 @@ spec:
       volumes:
         - name: webhook-certs
           secret:
-            secretName: env-injector-webhook-certs
+            secretName: env-injector-webhook-tls
         - name: webhook-config
           configMap:
             name: env-injector-webhook-configmap

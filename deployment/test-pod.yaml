@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: env-injector-test-pod
+  namespace: test
+  labels:
+    app: env-injector-test
+spec:
+  containers:
+    - name: busybox
+      image: busybox
+      command: ["sleep", "3600"]
+      imagePullPolicy: IfNotPresent

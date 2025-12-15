@@ -11,7 +11,8 @@ webhooks:
     clientConfig:
       service:
         name: env-injector-webhook-svc
-        namespace: admin
+#        namespace: admin
+        namespace: env-injector
         path: "/mutate"
       caBundle: ${CA_BUNDLE}
     rules:

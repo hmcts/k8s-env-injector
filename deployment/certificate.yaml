@@ -1,0 +1,22 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: env-injector-webhook-cert
+  namespace: env-injector
+spec:
+  secretName: env-injector-webhook-tls
+  duration: 8760h # 1 year
+  renewBefore: 360h # 15 days
+  subject:
+    organizations:
+      - env-injector
+  commonName: env-injector-webhook-svc.env-injector.svc
+  dnsNames:
+    - env-injector-webhook.env-injector.svc
+    - env-injector-webhook.env-injector.svc.cluster.local
+    - env-injector-webhook-svc.env-injector.svc
+    - env-injector-webhook-svc.env-injector.svc.cluster.local
+  issuerRef:
+    name: env-injector-selfsigned-issuer
+    kind: Issuer
+    group: cert-manager.io

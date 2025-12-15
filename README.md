@@ -98,36 +98,39 @@ docker push <your container repository>/k8s-env-injector:<tag>
 
 ```
 
+
 ## Deploy
 
-Create a signed cert/key pair and store it in a Kubernetes `secret` that will be consumed by env-injector deployment
+Ab Kubernetes 1.22 wird für die Verwaltung der TLS-Zertifikate cert-manager verwendet. Die Zertifikate werden automatisch erstellt und als Secret bereitgestellt.
+
+### 1. Installiere cert-manager (falls noch nicht vorhanden)
+
+Siehe https://cert-manager.io/docs/installation/
+
+### 2. Erzeuge Issuer und Certificate Ressourcen
 
 ```
-./deployment/webhook-create-signed-cert.sh \
-    --service env-injector-webhook-svc \
-    --secret env-injector-webhook-certs \
-    --namespace default
+kubectl apply -f deployment/issuer.yaml
+kubectl apply -f deployment/certificate.yaml
 ```
 
-> **_NOTE:_** This creates a secret within your namespace so you need to use this namespace for the rest of the deployment steps
+### 3. Patche das CA-Bundle in die MutatingWebhookConfiguration
 
-Patch the `MutatingWebhookConfiguration` by set `caBundle` with correct value from Kubernetes cluster
+Das CA-Bundle wird aus dem von cert-manager erzeugten Secret extrahiert:
 
 ```
 cat deployment/mutatingwebhook.yaml | \
-    deployment/webhook-patch-ca-bundle.sh > \
-    deployment/mutatingwebhook-ca-bundle.yaml
+  deployment/webhook-patch-ca-bundle.sh > \
+  deployment/mutatingwebhook-ca-bundle.yaml
 ```
 
-This will update the local `deployment/mutatingwebhook-ca-bundle.yaml` file with a new CA bundle string, make sure to check that it also has the matching namespace file before you deploy.
-
-Deploy resources
+### 4. Deploy der Ressourcen
 
 ```
-kubectl create -f deployment/configmap.yaml
-kubectl create -f deployment/deployment.yaml
-kubectl create -f deployment/service.yaml
-kubectl create -f deployment/mutatingwebhook-ca-bundle.yaml
+kubectl apply -f deployment/configmap.yaml
+kubectl apply -f deployment/deployment.yaml
+kubectl apply -f deployment/service.yaml
+kubectl apply -f deployment/mutatingwebhook-ca-bundle.yaml
 ```
 
 ## Verify
