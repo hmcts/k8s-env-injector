@@ -2,7 +2,7 @@ module k8s-env-injector
 
 go 1.22.0
 
-toolchain go1.22.3
+toolchain go1.25.7
 
 require (
 	github.com/ghodss/yaml v1.0.0
