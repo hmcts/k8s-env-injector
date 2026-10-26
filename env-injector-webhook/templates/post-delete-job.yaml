@@ -18,7 +18,7 @@ spec:
       labels:
         app.kubernetes.io/instance: {{ .Release.Name }}
         app.kubernetes.io/name: {{ template "chart-env-injector.name" . }}
-        hmcts.github.com/automount-token-exception: env-injector-lifecycle
+        hmcts.github.com/automount-token-exception: chart-tests
     spec:
       restartPolicy: OnFailure
       serviceAccountName: env-injector-jobs

@@ -235,12 +235,15 @@ The lifecycle Jobs need API access to manage certificates, Secrets and the
 MutatingWebhookConfiguration.
 
 Only the lifecycle Job pod templates carry
-`hmcts.github.com/automount-token-exception: env-injector-lifecycle`. The HMCTS
+`hmcts.github.com/automount-token-exception: chart-tests`. The HMCTS
 `azure-policy` repository uses a `NotIn` label selector on the DCD-CFTAPPS-SBOX
 automount-token policy assignment to exclude this exact value. Unlabelled pods
 and pods with other values remain evaluated; `chart-tests` is not excluded as a
 namespace. This exception does not apply in other subscriptions. Deploy the
 sandbox policy assignment changes before testing the chart there.
+
+Other charts with test workloads that require Kubernetes API access can opt into
+the same exception by applying this label to those pod templates.
 
 This label is a reviewed exception convention, not an authorization boundary:
 another workload could copy it, and the selector applies throughout the sandbox
