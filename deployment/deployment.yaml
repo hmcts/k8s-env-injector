@@ -14,6 +14,7 @@ spec:
       labels:
         app: env-injector
     spec:
+      automountServiceAccountToken: false
       containers:
         - name: env-injector
           image: hmctsprod.azurecr.io/hmcts/k8s-env-injector:492855_20231212

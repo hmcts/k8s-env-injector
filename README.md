@@ -220,6 +220,43 @@ This allows the installation/upgrade steps to execute in the right order, but ha
 around the secret and mutating webhook when the chart is deleted. 
 For that reason a pre-upgrade + post-delete helm hook takes care of deleting secret and admission webhook.
 
+### Service accounts and API token policy
+
+The Helm chart separates runtime and lifecycle identities:
+
+| Service account | Used by | API token automount | Permissions |
+| --- | --- | --- | --- |
+| `env-injector-webhook` | Webhook Deployment | Disabled on the account and pod template | No RBAC binding |
+| `env-injector-jobs` | Installation and cleanup Jobs | Enabled | Existing `env-injector` ClusterRole |
+
+The webhook receives admission requests over HTTPS and reads its configuration and
+serving certificate from mounted files; it does not need a Kubernetes API token.
+The lifecycle Jobs need API access to manage certificates, Secrets and the
+MutatingWebhookConfiguration.
+
+Only the lifecycle Job pod templates carry
+`hmcts.github.com/automount-token-exception: env-injector-lifecycle`. The HMCTS
+`azure-policy` repository uses a `NotIn` label selector on the DCD-CFTAPPS-SBOX
+automount-token policy assignment to exclude this exact value. Unlabelled pods
+and pods with other values remain evaluated; `chart-tests` is not excluded as a
+namespace. This exception does not apply in other subscriptions. Deploy the
+sandbox policy assignment changes before testing the chart there.
+
+This label is a reviewed exception convention, not an authorization boundary:
+another workload could copy it, and the selector applies throughout the sandbox
+subscription. Do not apply it to the webhook Deployment or unrelated pods.
+
+The lifecycle RBAC hooks run at weight `-7`, before the cleanup Job at `-6`.
+This ensures the renamed account and its binding exist for the cleanup Job on
+the first upgrade as well as subsequent upgrades. The new webhook account is a
+regular chart resource. The old `env-injector` account, created by an earlier
+chart hook, may remain after upgrade; once no pods use it and the binding points
+to `env-injector-jobs`, it can be deleted from the release namespace.
+
+After deployment, verify the webhook pods use `env-injector-webhook`, have no
+service-account token mount, and still mutate a test pod. Verify installation,
+upgrade and uninstall Jobs use `env-injector-jobs` and retain API access.
+
 ## Updates
 If you wish to update or increase the coverage of this webhook you can use the following API Guide for Kubernetes and Golang:
 

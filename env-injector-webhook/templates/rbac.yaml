@@ -5,7 +5,7 @@ metadata:
   annotations:
     "helm.sh/hook": pre-install,pre-upgrade
     "helm.sh/hook-delete-policy": before-hook-creation
-    "helm.sh/hook-weight": "-3"
+    "helm.sh/hook-weight": "-7"
 rules:
   - apiGroups:
       - ''
@@ -44,14 +44,14 @@ metadata:
   annotations:
     "helm.sh/hook": pre-install,pre-upgrade
     "helm.sh/hook-delete-policy": before-hook-creation
-    "helm.sh/hook-weight": "-3"
+    "helm.sh/hook-weight": "-7"
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
   name: env-injector
 subjects:
   - kind: ServiceAccount
-    name: env-injector
+    name: env-injector-jobs
     namespace: {{ .Release.Namespace }}
     
 ---
@@ -59,9 +59,10 @@ subjects:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: env-injector
+  name: env-injector-jobs
   annotations:
     "helm.sh/hook": pre-install,pre-upgrade
     "helm.sh/hook-delete-policy": before-hook-creation
-    "helm.sh/hook-weight": "-3"
+    "helm.sh/hook-weight": "-7"
   namespace: {{ .Release.Namespace }}
+automountServiceAccountToken: true

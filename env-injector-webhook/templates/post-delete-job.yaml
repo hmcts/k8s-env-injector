@@ -18,9 +18,11 @@ spec:
       labels:
         app.kubernetes.io/instance: {{ .Release.Name }}
         app.kubernetes.io/name: {{ template "chart-env-injector.name" . }}
+        hmcts.github.com/automount-token-exception: env-injector-lifecycle
     spec:
       restartPolicy: OnFailure
-      serviceAccountName: env-injector
+      serviceAccountName: env-injector-jobs
+      automountServiceAccountToken: true
       containers:
         - name: post-delete-job
           image: bitnami/kubectl:latest
