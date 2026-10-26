@@ -25,7 +25,7 @@ variables:
   - name: agentPool
     value: ubuntu-latest
   - name: acrName
-    value: hmctspublic
+    value: hmctsprod
   - name: acrResourceGroup
     value: rpe-acr-prod-rg
   - name: serviceConnection
