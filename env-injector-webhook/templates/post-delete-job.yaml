@@ -25,7 +25,7 @@ spec:
       automountServiceAccountToken: true
       containers:
         - name: post-delete-job
-          image: bitnami/kubectl:latest
+          image: {{ .Values.kubectlImage }}
           command: ["/bin/sh", "-c", "/etc/config/config.sh"]
           volumeMounts:
           - name: config-volume
