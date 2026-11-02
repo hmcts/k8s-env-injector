@@ -2,7 +2,6 @@ FROM golang:1.25.5 as build
 
 WORKDIR /go/src/app
 ADD . /go/src/app
-RUN go get -u -t ./...
 RUN CGO_ENABLED=0 GOOS=linux GO111MODULE="on" go build -a -installsuffix cgo -o /go/bin/app/k8s-env-injector .
 
 
