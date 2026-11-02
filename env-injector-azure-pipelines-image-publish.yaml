@@ -25,7 +25,7 @@ variables:
   - name: acrResourceGroup
     value: rpe-acr-prod-rg
   - name: serviceConnection
-    value: azurerm-prod
+    value: DCD-CNP-Prod-WIF
   - name: buildPath
     value: image
   - name: buildTime
