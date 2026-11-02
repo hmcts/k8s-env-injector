@@ -6,7 +6,7 @@ toolchain go1.22.3
 
 require (
 	github.com/ghodss/yaml v1.0.0
-	github.com/golang/glog v1.2.1
+	github.com/golang/glog v1.2.4
 	github.com/google/go-cmp v0.6.0
 	k8s.io/api v0.30.1
 	k8s.io/apimachinery v0.30.1
