@@ -23,7 +23,7 @@ spec:
       serviceAccountName: env-injector
       containers:
         - name: post-delete-job
-          image: bitnami/kubectl:latest
+          image: bitnami/kubectl:1.35.9
           command: ["/bin/sh", "-c", "/etc/config/config.sh"]
           volumeMounts:
           - name: config-volume
