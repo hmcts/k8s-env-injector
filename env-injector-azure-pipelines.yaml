@@ -29,7 +29,7 @@ variables:
   - name: acrResourceGroup
     value: rpe-acr-prod-rg
   - name: serviceConnection
-    value: azurerm-prod
+    value: DCD-CNP-Prod-WIF
   - name: repoName
     value: k8s-env-injector
   - name: buildPath
@@ -67,7 +67,7 @@ jobs:
           helmInstallTimeout: "300"
           valuesFile: $(valuesFile)
           serviceConnection: "DCD-CFTAPPS-SBOX"
-          registryServiceConnection: "azurerm-prod"
+          registryServiceConnection: "DCD-CNP-Prod-WIF"
           aksResourceGroup: $(aksResourceGroup)
           aksCluster: $(aksCluster)
           ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
@@ -90,7 +90,7 @@ jobs:
           chartReleaseName: chart-$(chartName)-ci
           chartNamespace: chart-tests
           serviceConnection: "DCD-CFTAPPS-SBOX"
-          registryServiceConnection: "azurerm-prod"
+          registryServiceConnection: "DCD-CNP-Prod-WIF"
           aksResourceGroup: $(aksResourceGroup)
           aksCluster: $(aksCluster)
 
