@@ -23,7 +23,7 @@ spec:
       serviceAccountName: env-injector
       containers:
         - name: pre-install-job
-          image: bitnami/kubectl:1.35.9
+          image: hmctsprod.azurecr.io/hmcts-kubectl/kubectl:prod-6107d46e-1773660816
           command: ["/bin/sh", "-c", "/etc/config/config.sh"]
           volumeMounts:
           - name: config-volume
